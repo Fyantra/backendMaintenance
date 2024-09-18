@@ -37,7 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'machine',
+    'atelier',
+    'piece_detache',
+    'fournisseur'
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -75,8 +82,12 @@ WSGI_APPLICATION = 'backendMaintenance.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'akanjo_maintenance',
+        'USER': 'postgres',
+        'PASSWORD': '0000',
+        'HOST': 'localhost',  
+        'PORT': '5433',       
     }
 }
 
