@@ -22,10 +22,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('utilisateur.urls')),
-    path('', include('machine.urls')),
-    path('', include('atelier.urls')),
-    path('', include('fournisseur.urls')),
-    path('', include('piece_detache.urls')),
+    path('', include('maintenance.urls')),
 ]
 
 if settings.DEBUG:      #pour le mode developpement seulement

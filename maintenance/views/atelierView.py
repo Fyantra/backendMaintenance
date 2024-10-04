@@ -1,9 +1,8 @@
-# dans views.py
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from .models import Machine, Modele, Type, NomMachine, Marque
-from .serializers import MachineSerializer, ModeleSerializer, TypeSerializer, NomMachineSerializer, MarqueSerializer
 from utilisateur.permissions import IsChef
+from ..models import Endroit, Responsable, Atelier, Chaine
+from ..serializers import EndroitSerializer, ResponsableSerializer, AtelierSerializer, ChaineSerializer
 from django.utils.timezone import now
 
 #####################################CRUD#####################################
@@ -26,25 +25,23 @@ class BaseModelViewSet(viewsets.ModelViewSet):
             self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
 
-# Créer les ViewSets pour chaque modèle
-class MachineViewSet(BaseModelViewSet):
-    queryset = Machine.objects.all()
-    serializer_class = MachineSerializer
+class EndroitViewSet(BaseModelViewSet):
+    queryset = Endroit.objects.filter(deleted_at__isnull=True)
+    serializer_class = EndroitSerializer
 
-class ModeleViewSet(BaseModelViewSet):
-    queryset = Modele.objects.all()
-    serializer_class = ModeleSerializer
 
-class TypeViewSet(BaseModelViewSet):
-    queryset = Type.objects.all()
-    serializer_class = TypeSerializer
+class ResponsableViewSet(BaseModelViewSet):
+    queryset = Responsable.objects.filter(deleted_at__isnull=True)
+    serializer_class = ResponsableSerializer
 
-class NomMachineViewSet(BaseModelViewSet):
-    queryset = NomMachine.objects.all()
-    serializer_class = NomMachineSerializer
 
-class MarqueViewSet(BaseModelViewSet):
-    queryset = Marque.objects.all()
-    serializer_class = MarqueSerializer
+class AtelierViewSet(BaseModelViewSet):
+    queryset = Atelier.objects.filter(deleted_at__isnull=True)
+    serializer_class = AtelierSerializer
 
+
+class ChaineViewSet(BaseModelViewSet):
+    queryset = Chaine.objects.filter(deleted_at__isnull=True)
+    serializer_class = ChaineSerializer
+    
 #####################################FIN CRUD#####################################

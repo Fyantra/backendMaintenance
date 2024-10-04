@@ -1,8 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from utilisateur.permissions import IsChef
-from .models import Fournisseur
-from .serializers import FournisseurSerializer
+from ..models import Fournisseur
+from ..serializers import FournisseurSerializer
 from django.utils import timezone
 
 class FournisseurViewSet(viewsets.ModelViewSet):

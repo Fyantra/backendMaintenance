@@ -8,6 +8,7 @@ class Utilisateur(AbstractUser):
         ('technicien', 'Technicien'),
         ('responsable', 'Responsable')
     ])
+    first_name = models.CharField(max_length=50, null=True)
     is_active = models.BooleanField(default=True)
     last_login = models.DateTimeField(auto_now_add=True, null=False)
 

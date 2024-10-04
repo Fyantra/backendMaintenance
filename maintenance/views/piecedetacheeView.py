@@ -1,8 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from utilisateur.permissions import IsChef
-from .models import PieceDetachee
-from .serializers import PieceDetacheeSerializer
+from ..models import PieceDetachee
+from ..serializers import PieceDetacheeSerializer
 from django.utils import timezone
 
 class PieceDetacheeViewSet(viewsets.ModelViewSet):
