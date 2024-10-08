@@ -97,7 +97,7 @@ class PieceDetachee(models.Model):
     emplacement = models.ForeignKey(Atelier,on_delete=models.SET_NULL,null=True,verbose_name="Emplacement")      #emplacement du piece detache
     fournisseur = models.ForeignKey(Fournisseur, on_delete=models.SET_NULL,null=True,verbose_name="Fournisseur")
     reference_fabricant = models.CharField(max_length=50, null=True, blank=True, verbose_name="Reference fabricant")
-    image = models.ImageField(upload_to='piece_detaches',null=False, verbose_name="Image")
+    image = models.ImageField(upload_to='piece_detaches',null=True, verbose_name="Image")
     stock_min = models.PositiveIntegerField(null=False, verbose_name="Stock minimum")
     stock_max = models.PositiveIntegerField(null=False, verbose_name="Stock maximum")
     lot_de_reapprovisionnement = models.PositiveSmallIntegerField(null=False, verbose_name="Lot de réapprovisionnement")
