@@ -75,6 +75,14 @@ class Marque(models.Model):
     def __str__(self):
         return self.nom_marque
     
+class Status(models.Model):
+    nom_status = models.CharField(max_length=50, null=False, verbose_name="Nom de status")
+    date_creation = models.DateTimeField(auto_now_add=True, null=True)
+    deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
+    
+    def __str__(self):
+        return self.nom_status
+    
 ###################################################################################################################
     
 class Fournisseur(models.Model):
@@ -92,15 +100,16 @@ class PieceDetachee(models.Model):
     nom_piecedetache = models.CharField(max_length=100, null=False, verbose_name="Nom de la pièce détachée")
     description = models.TextField(null=True, blank=True, verbose_name="Description")
     modele = models.ForeignKey(Modele, on_delete=models.SET_NULL,null=True,verbose_name="Modele")
-    date_achat = models.DateField(null=True, blank=True, verbose_name="Date d'achat")
+    date_achat = models.DateTimeField(null=True, blank=True, verbose_name="Date d'achat")
+    quantite = models.PositiveIntegerField(null=False, default=0 ,verbose_name="Quantite")
     prix_unitaire = models.DecimalField(max_digits=10, decimal_places=2, null=False, verbose_name="Prix unitaire")
     emplacement = models.ForeignKey(Atelier,on_delete=models.SET_NULL,null=True,verbose_name="Emplacement")      #emplacement du piece detache
     fournisseur = models.ForeignKey(Fournisseur, on_delete=models.SET_NULL,null=True,verbose_name="Fournisseur")
     reference_fabricant = models.CharField(max_length=50, null=True, blank=True, verbose_name="Reference fabricant")
     image = models.ImageField(upload_to='piece_detaches',null=True, verbose_name="Image")
     stock_min = models.PositiveIntegerField(null=False, verbose_name="Stock minimum")
-    stock_max = models.PositiveIntegerField(null=False, verbose_name="Stock maximum")
-    lot_de_reapprovisionnement = models.PositiveSmallIntegerField(null=False, verbose_name="Lot de réapprovisionnement")
+    stock_max = models.PositiveIntegerField(null=True, verbose_name="Stock maximum")
+    lot_de_reapprovisionnement = models.PositiveSmallIntegerField(null=True, verbose_name="Lot de réapprovisionnement")
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
     deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
     
@@ -110,23 +119,19 @@ class PieceDetachee(models.Model):
 #################################################################################################################################
         
 class Machine(models.Model):
-    STATUT = [
-        ('EN_COURS', 'En cours d`utilisation'),
-        ('EN_MAINTENANCE', 'En maintenance'),
-        ('EN_PANNE', 'En panne'),
-        ('HORS_SERVICE', 'Hors service'),
-    ]
-    
-    nom_machine = models.ForeignKey(NomMachine, on_delete=models.SET_NULL,null=True,verbose_name="Nom du machine")
+    nom_machine = models.CharField(max_length=50, null=False, verbose_name="Nom de machine")
     numero_de_serie = models.CharField(max_length=100, null=False, unique=True, verbose_name="Numero de serie")
     numero_de_moteur = models.CharField(max_length=50, null=True, blank=True, verbose_name="Numero de moteur")
-    modele = models.ForeignKey(Modele, on_delete=models.SET_NULL,null=True,verbose_name="Modele")   #ex: PIQUEUSE DOUBLE ETRAINNEMENT JUKI
     type = models.ForeignKey(Type, on_delete=models.SET_NULL,null=True,verbose_name="Type")     #ex: DDL 9000 C 
     marque = models.ForeignKey(Marque, on_delete=models.SET_NULL,null=True,verbose_name="Marque")
-    date_mis_en_place = models.DateField(null=True, verbose_name="Date de mise en place")
-    status = models.CharField(max_length=20, choices=STATUT, default='HORS_SERVICE', verbose_name="Statut")      #Etat
+    atelier = models.ForeignKey(Atelier,on_delete=models.SET_NULL,null=True,verbose_name="Atelier")
+    chaine = models.ForeignKey(Chaine,on_delete=models.SET_NULL,null=True,verbose_name="Chaine")  
+    date_mis_en_place = models.DateField(null=True, verbose_name="Date de mise en place")   #debut utilisation
+    date_acquisition = models.DateField(null=True, blank=True, verbose_name="Date d'acquisition")   #date d`achat
+    status = models.ForeignKey(Status, on_delete=models.CASCADE,null=False,verbose_name="Status")
+    date_hors_service= models.DateField(null=True, blank=True, verbose_name="Date de mise hors service") 
     description = models.TextField(null=True, blank=True, verbose_name="Description")
-    image = models.ImageField(upload_to='machines/',null=True, verbose_name="Image")
+    image = models.ImageField(upload_to='machines/',null=True, verbose_name="Image machine")
     reference_fabricant = models.CharField(max_length=50, null=True, blank=True, verbose_name="Reference fabricant")
     fournisseur = models.ForeignKey(Fournisseur, on_delete=models.SET_NULL,null=True,verbose_name="Fournisseur")
     pieces_detachees = models.ManyToManyField(PieceDetachee, blank=True, verbose_name="Pièces détachées")
@@ -136,15 +141,14 @@ class Machine(models.Model):
     def __str__(self):
         return self.nom_machine
     
+class MachineRelation(models.Model):        #pour les machines qui ont des machines associes
+    machine_principale = models.ForeignKey(Machine, related_name='machine_principale', on_delete=models.CASCADE,null=True, verbose_name="Machine principale")
+    machine_liee = models.ForeignKey(Machine, related_name='machine_liee', on_delete=models.CASCADE, null=True, verbose_name="Machine liée")
+    quantite = models.PositiveIntegerField(null=True, blank=True, verbose_name="Quantité de la machine liée")
     
-# class Status(models.Model):
-#     nom_status = models.CharField(max_length=50, null=False, unique=True, verbose_name="Statut")
-#     date_creation = models.DateTimeField(auto_now_add=True, null=True)
-#     deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
+    def __str__(self):
+        return f"{self.machine_principale.nom_machine} liée à {self.machine_liee.nom_machine} (Quantité: {self.quantite})"
     
-#     def __str__(self):
-#         return self.nom_status
-
 
 
 

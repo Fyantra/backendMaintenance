@@ -36,7 +36,7 @@ class ResponsableViewSet(BaseModelViewSet):
 
 
 class AtelierViewSet(BaseModelViewSet):
-    queryset = Atelier.objects.filter(deleted_at__isnull=True)
+    queryset = Atelier.objects.filter(deleted_at__isnull=True).select_related('endroit', 'responsable')
     serializer_class = AtelierSerializer
 
 

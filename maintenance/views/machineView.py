@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from ..models import Machine, Modele, Type, NomMachine, Marque
-from ..serializers import MachineSerializer, ModeleSerializer, TypeSerializer, NomMachineSerializer, MarqueSerializer
+from ..models import Machine, Modele, Type, NomMachine, Marque, Status, MachineRelation
+from ..serializers import MachineSerializer, ModeleSerializer, TypeSerializer, NomMachineSerializer, MarqueSerializer, StatusSerializer, MachineRelationSerializer
 from utilisateur.permissions import IsChef
 from django.utils.timezone import now
 
@@ -29,6 +29,18 @@ class BaseModelViewSet(viewsets.ModelViewSet):
 class MachineViewSet(BaseModelViewSet):
     queryset = Machine.objects.all()
     serializer_class = MachineSerializer
+    
+class MachineRelationViewSet(viewsets.ModelViewSet):
+    queryset = MachineRelation.objects.all()
+    serializer_class = MachineRelationSerializer
+    
+    def get_permissions(self):      #seuls un Chef pour faire les operations CRUD
+        
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            self.permission_classes = [IsAuthenticated, IsChef]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
 
 class ModeleViewSet(BaseModelViewSet):
     queryset = Modele.objects.all()
@@ -45,5 +57,10 @@ class NomMachineViewSet(BaseModelViewSet):
 class MarqueViewSet(BaseModelViewSet):
     queryset = Marque.objects.all()
     serializer_class = MarqueSerializer
+    
+class StatusViewSet(BaseModelViewSet):
+    queryset = Status.objects.all()
+    serializer_class = StatusSerializer
+
 
 #####################################FIN CRUD#####################################

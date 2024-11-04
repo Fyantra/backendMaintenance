@@ -8,10 +8,12 @@ from .views.piecedetacheeView import *
 
 routermachine = DefaultRouter()
 routermachine.register(r'machines', MachineViewSet)
+routermachine.register(r'machine_relation', MachineRelationViewSet)
 routermachine.register(r'modeles', ModeleViewSet)
 routermachine.register(r'types', TypeViewSet)
 routermachine.register(r'noms_machines', NomMachineViewSet)
 routermachine.register(r'marques', MarqueViewSet)
+routermachine.register(r'status', StatusViewSet)
 
 routerAtelier = DefaultRouter()
 routerAtelier.register(r'endroits', EndroitViewSet)
