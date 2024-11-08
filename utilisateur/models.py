@@ -17,7 +17,7 @@ class Utilisateur(AbstractUser):
         Group,
         related_name='utilisateur_groups',  
         blank=True,
-        verbose_name='groups',
+        verbose_name='groups',              
     )
     
     user_permissions = models.ManyToManyField(

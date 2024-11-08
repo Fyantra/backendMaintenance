@@ -72,7 +72,7 @@ class MarqueSerializer(serializers.ModelSerializer):
 class StatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Status
-        fields = ['id', 'nom_status', 'date_creation']
+        fields = ['id', 'nom_status', 'couleur' , 'date_creation']
 
                 
 class MachineRelationSerializer(serializers.ModelSerializer):
@@ -116,9 +116,7 @@ class MachineSerializer(serializers.ModelSerializer):
     fournisseur_id = serializers.PrimaryKeyRelatedField(
         queryset=Fournisseur.objects.all(), source='fournisseur', allow_null=True, required=False
     )
-    
-    # machines_liees = MachineRelationSerializer(source='machine_liee', many=True, allow_null=True, required= False)
-    
+        
     pieces_detachees = PieceDetacheeSousSerializer(many=True, read_only=True)   #pour les details 
     pieces_detachees_id = serializers.PrimaryKeyRelatedField(
         queryset=PieceDetachee.objects.all(), many=True, source='pieces_detachees', allow_null=True, required= False
@@ -132,7 +130,7 @@ class MachineSerializer(serializers.ModelSerializer):
                   'pieces_detachees_id', 'pieces_detachees' ,  'date_creation']
     
     def create(self, validated_data):
-        # Extraire les données pour les pièces détachées et les machines liées
+        # Extraire les données pour les pièces détachées
         pieces_detachees_data = validated_data.pop('pieces_detachees', [])
         
         machine = Machine.objects.create(**validated_data)
@@ -140,20 +138,10 @@ class MachineSerializer(serializers.ModelSerializer):
         # Ajouter les pièces détachées
         machine.pieces_detachees.set(pieces_detachees_data)
 
-        # Ajouter les relations de machines liées
-        # for machine_associee_data in machines_liees_data:
-        #     MachineRelation.objects.create(
-        #         machine_principale=machine,
-        #         machine_liee=machine_associee_data['machine_liee'],
-        #         quantite=machine_associee_data.get('quantite', None)
-        #     )
-
         return machine
 
     def update(self, instance, validated_data):
-        # Extraire les données des machines liées, si elles existent
         pieces_detachees_data = validated_data.pop('pieces_detachees', [])
-        # machines_liees_data = validated_data.pop('machine_liee', [])
 
         # Mettre à jour les autres champs de la machine principale en utilisant validated_data
         for attr, value in validated_data.items():
@@ -190,3 +178,24 @@ class PieceDetacheeSerializer(serializers.ModelSerializer):
         fields = ['id', 'nom_piecedetache', 'description', 'modele', 'date_achat', 'prix_unitaire', 'quantite', 'emplacement', 'fournisseur',
                   'modele_id', 'emplacement_id', 'fournisseur_id','reference_fabricant', 'image', 'stock_min', 'stock_max', 
                   'lot_de_reapprovisionnement', 'date_creation']
+
+
+class HistoriqueMouvementMachineSerializer(serializers.ModelSerializer):
+    machine = MachineSousSerializer(read_only=True)
+    machine_id = serializers.PrimaryKeyRelatedField(
+        queryset=Machine.objects.all(), source='machine'
+    )
+    
+    atelier = AtelierSousSerializer(read_only=True)
+    atelier_id = serializers.PrimaryKeyRelatedField(
+        queryset=Atelier.objects.all(), source='atelier'
+    )
+    
+    chaine = ChaineSousSerializer(read_only=True)
+    chaine_id = serializers.PrimaryKeyRelatedField(
+        queryset=Chaine.objects.all(), source='chaine'
+    )
+    
+    class Meta:
+        model = HistoriqueMouvementMachine
+        fields = ['id', 'machine_id', 'machine', 'atelier_id', 'atelier', 'chaine_id', 'chaine' , 'date_creation']

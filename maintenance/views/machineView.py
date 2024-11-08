@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from ..models import Machine, Modele, Type, NomMachine, Marque, Status, MachineRelation
-from ..serializers import MachineSerializer, ModeleSerializer, TypeSerializer, NomMachineSerializer, MarqueSerializer, StatusSerializer, MachineRelationSerializer
+from ..models import Machine, Modele, Type, NomMachine, Marque, Status, MachineRelation, HistoriqueMouvementMachine
+from ..serializers import MachineSerializer, ModeleSerializer, TypeSerializer, NomMachineSerializer, MarqueSerializer, StatusSerializer, MachineRelationSerializer, HistoriqueMouvementMachineSerializer
 from utilisateur.permissions import IsChef
 from django.utils.timezone import now
 
@@ -61,6 +61,10 @@ class MarqueViewSet(BaseModelViewSet):
 class StatusViewSet(BaseModelViewSet):
     queryset = Status.objects.all()
     serializer_class = StatusSerializer
+    
+class HistoriqueMouvementMachineViewSet(BaseModelViewSet):
+    queryset = HistoriqueMouvementMachine.objects.all()
+    serializer_class = HistoriqueMouvementMachineSerializer
 
 
 #####################################FIN CRUD#####################################

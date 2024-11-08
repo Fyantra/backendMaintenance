@@ -14,6 +14,7 @@ routermachine.register(r'types', TypeViewSet)
 routermachine.register(r'noms_machines', NomMachineViewSet)
 routermachine.register(r'marques', MarqueViewSet)
 routermachine.register(r'status', StatusViewSet)
+routermachine.register(r'historique_machine', HistoriqueMouvementMachineViewSet)
 
 routerAtelier = DefaultRouter()
 routerAtelier.register(r'endroits', EndroitViewSet)

@@ -52,19 +52,21 @@ class MarqueSousSerializer(MereSousSerializer):
 class StatusSousSerializer(MereSousSerializer):
     class Meta:
         model = Status
-        fields = ['id','nom_status']
+        fields = ['id','nom_status', 'couleur']
 
 
 class MachineSousSerializer(MereSousSerializer):
+    type = TypeSousSerializer(read_only=True)
+    status = StatusSousSerializer(read_only=True)
+    marque = MarqueSousSerializer(read_only=True)
+    atelier = AtelierSousSerializer(read_only=True)
+    chaine = ChaineSousSerializer(read_only=True)
     
     class Meta:
         model = Machine
-        fields = ['id','nom_machine', 'numero_de_serie' ,'image']
+        fields = ['id', 'nom_machine', 'numero_de_serie', 'type', 'marque',  'date_mis_en_place','date_acquisition','status', 
+                  'atelier', 'chaine' , 'date_hors_service', 'image', 'description','date_creation']
         
-# class MachineRelationSousSerializer(MereSousSerializer):
-#     class Meta:
-#         model = MachineRelation
-#         fields = ['machine_liee', 'quantite']
         
 class PieceDetacheeSousSerializer(MereSousSerializer):
     modele = ModeleSousSerializer(read_only=True)
@@ -72,4 +74,4 @@ class PieceDetacheeSousSerializer(MereSousSerializer):
     
     class Meta:
         model = PieceDetachee
-        fields = ['id','nom_piecedetache', 'modele' ,'prix_unitaire', 'quantite', 'emplacement','image']
+        fields = ['id','nom_piecedetache', 'modele' ,'prix_unitaire', 'quantite', 'stock_min', 'stock_max', 'emplacement','image']

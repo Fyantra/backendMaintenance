@@ -77,6 +77,7 @@ class Marque(models.Model):
     
 class Status(models.Model):
     nom_status = models.CharField(max_length=50, null=False, verbose_name="Nom de status")
+    couleur = models.CharField(max_length=10, null=True, blank=True, verbose_name="Code couleur statut")
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
     deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
     
@@ -149,6 +150,9 @@ class MachineRelation(models.Model):        #pour les machines qui ont des machi
     def __str__(self):
         return f"{self.machine_principale.nom_machine} liée à {self.machine_liee.nom_machine} (Quantité: {self.quantite})"
     
-
-
-
+class HistoriqueMouvementMachine(models.Model):
+    machine = models.ForeignKey(Machine, on_delete=models.SET_NULL,null=True,verbose_name="Machine")
+    atelier = models.ForeignKey(Atelier,on_delete=models.SET_NULL,null=True,verbose_name="Atelier")
+    chaine = models.ForeignKey(Chaine,on_delete=models.SET_NULL,null=True,verbose_name="Chaine")  
+    date_creation = models.DateTimeField(auto_now_add=True, null=True)
+    deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
