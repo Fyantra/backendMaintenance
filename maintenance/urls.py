@@ -5,6 +5,8 @@ from .views.machineView import *
 from .views.atelierView import *
 from .views.fournisseurView import *
 from .views.piecedetacheeView import *
+from .views.tacheView import *
+from .views.notificationView import *
 
 routermachine = DefaultRouter()
 routermachine.register(r'machines', MachineViewSet)
@@ -15,6 +17,17 @@ routermachine.register(r'noms_machines', NomMachineViewSet)
 routermachine.register(r'marques', MarqueViewSet)
 routermachine.register(r'status', StatusViewSet)
 routermachine.register(r'historique_machine', HistoriqueMouvementMachineViewSet)
+
+routerTache = DefaultRouter()
+routerTache.register(r'taches', TacheViewSet)
+routerTache.register(r'motif_taches', MotifTacheViewSet)
+routerTache.register(r'status_taches', StatusTacheViewSet)
+routerTache.register(r'historique_taches', HistoriqueTacheViewSet)
+routerTache.register(r'activites_taches', ActiviteTacheViewSet)
+routerTache.register(r'activites_piecedetachees', ActiviteTachePieceDetacheeViewSet)
+
+routerNotification = DefaultRouter()
+routerNotification.register(r'notifications', NotificationViewSet)
 
 routerAtelier = DefaultRouter()
 routerAtelier.register(r'endroits', EndroitViewSet)
@@ -33,4 +46,6 @@ urlpatterns = [
     path('maintenance_api/atelier/', include(routerAtelier.urls)),
     path('maintenance_api/fournisseur/', include(routerFournisseur.urls)),
     path('maintenance_api/piece/', include(routerPiece.urls)),
+    path('maintenance_api/tache/', include(routerTache.urls)),
+    path('maintenance_api/', include(routerNotification.urls)),
 ]

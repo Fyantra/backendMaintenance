@@ -72,7 +72,7 @@ class MarqueSerializer(serializers.ModelSerializer):
 class StatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Status
-        fields = ['id', 'nom_status', 'couleur' , 'date_creation']
+        fields = ['id', 'nom_status', 'couleur' , 'identifiant', 'date_creation']
 
                 
 class MachineRelationSerializer(serializers.ModelSerializer):
@@ -95,11 +95,6 @@ class MachineSerializer(serializers.ModelSerializer):
     type = TypeSousSerializer(read_only=True)
     type_id = serializers.PrimaryKeyRelatedField(
         queryset=Type.objects.all(), source='type', allow_null=True, required=False
-    )
-    
-    status = StatusSousSerializer(read_only=True)
-    status_id = serializers.PrimaryKeyRelatedField(
-        queryset=Status.objects.all(), source='status'
     )
     
     atelier = AtelierSousSerializer(read_only=True)
@@ -125,7 +120,7 @@ class MachineSerializer(serializers.ModelSerializer):
     class Meta:
         model = Machine
         fields = ['id', 'nom_machine', 'numero_de_serie', 'numero_de_moteur', 'type_id', 'type', 'marque_id', 'marque',  'date_mis_en_place',
-                  'date_acquisition','status_id','status', 'atelier_id', 'atelier', 'chaine_id', 'chaine' , 'date_hors_service', 
+                  'date_acquisition','identifiant_status_machine', 'atelier_id', 'atelier', 'chaine_id', 'chaine' , 'date_hors_service', 
                   'fournisseur_id', 'fournisseur',  'image', 'description', 'reference_fabricant', 
                   'pieces_detachees_id', 'pieces_detachees' ,  'date_creation']
     
@@ -181,21 +176,164 @@ class PieceDetacheeSerializer(serializers.ModelSerializer):
 
 
 class HistoriqueMouvementMachineSerializer(serializers.ModelSerializer):
+    machine = HistoriqueDeplacementMachineSousSerializer(read_only=True)
+    
+    atelier = AtelierSousSerializer(read_only=True)
+    
+    chaine = ChaineSousSerializer(read_only=True)
+    
+    class Meta:
+        model = HistoriqueMouvementMachine
+        fields = ['id', 'machine', 'atelier', 'chaine' , 'date_deplacement', 'date_creation']
+        
+
+#################################TACHE#########################################
+class MotifTacheSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MotifTache
+        fields = ['id', 'nom_motif_tache', 'date_creation']
+        
+class StatusTacheSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StatusTache
+        fields = ['id', 'nom_status_tache', 'couleur', 'identifiant', 'date_creation']
+        
+class TacheSerializer(serializers.ModelSerializer):
     machine = MachineSousSerializer(read_only=True)
     machine_id = serializers.PrimaryKeyRelatedField(
         queryset=Machine.objects.all(), source='machine'
     )
     
-    atelier = AtelierSousSerializer(read_only=True)
-    atelier_id = serializers.PrimaryKeyRelatedField(
-        queryset=Atelier.objects.all(), source='atelier'
+    motif_tache = MotifTacheSousSerializer(read_only=True)
+    motif_tache_id = serializers.PrimaryKeyRelatedField(
+        queryset=MotifTache.objects.all(), source='motif_tache', allow_null=True, required=False
     )
+        
+    class Meta:
+        model = Tache
+        fields = ['id', 'description', 'machine', 'machine_id', 'motif_tache', 'motif_tache_id', 'identifiant_status_tache',
+                  'date_debut', 'heure_debut', 'date_fin', 'heure_fin', 'temps_maintenance_heure', 'temps_maintenance_minute',
+                  'temps_arret_heure', 'temps_arret_minute', 'date_creation']
+        
+    # def validate(self, data):
+    #     if data['date_fin'] < data['date_debut']:
+    #         raise serializers.ValidationError(
+    #             {"date_fin": "La date de fin doit être postérieure ou égale à la date de début."}
+    #         )
+    #     return data
     
-    chaine = ChaineSousSerializer(read_only=True)
-    chaine_id = serializers.PrimaryKeyRelatedField(
-        queryset=Chaine.objects.all(), source='chaine'
-    )
+class HistoriqueTacheSerializer(serializers.ModelSerializer):
+    tache = TacheSerializer(read_only = True)
     
     class Meta:
-        model = HistoriqueMouvementMachine
-        fields = ['id', 'machine_id', 'machine', 'atelier_id', 'atelier', 'chaine_id', 'chaine' , 'date_creation']
+        model = HistoriqueTache
+        fields = ['id', 'tache', 'date_creation']
+        
+class ActiviteTacheSerializer(serializers.ModelSerializer):
+    total_duree = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ActiviteTache
+        fields = ['id', 'description', 'date_realisation', 'temps_passe_heure', 'temps_passe_minute', 'tache', 'total_duree', 'date_creation']
+        
+    def get_total_duree(self, obj):
+        """Calcule la durée totale pour toutes les activités associées à la même tâche."""
+        if obj.tache:
+            activites = ActiviteTache.objects.filter(tache=obj.tache)
+
+            # Somme des heures et des minutes
+            total_heures = sum(activite.temps_passe_heure or 0 for activite in activites)
+            total_minutes = sum(activite.temps_passe_minute or 0 for activite in activites)
+
+            # Convertir les minutes en heures si >= 60
+            total_heures += total_minutes // 60
+            total_minutes = total_minutes % 60
+
+            return f"{total_heures}h {total_minutes}mn"
+        return "0h 0mn"
+    
+class ActiviteTachePieceDetacheeSerializer(serializers.ModelSerializer):
+    pieces_detachees = PieceDetacheeActiviteSousSerializer(read_only=True)
+    pieces_detachees_id = serializers.PrimaryKeyRelatedField(
+        queryset=PieceDetachee.objects.all(), source='pieces_detachees', allow_null=True, required=False
+    )
+    
+    total = serializers.SerializerMethodField()
+
+    # Champ calculé pour le total de tous les ActiviteTachePieceDetachee liés à la même activité
+    somme_totale = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ActiviteTachePieceDetachee
+        fields = ['id', 'activite_tache', 'pieces_detachees_id', 'pieces_detachees', 'quantite', 'prix_piece_detachees','total', 'somme_totale']
+        
+    def create(self, validated_data):
+        piece_detachee = validated_data.get('pieces_detachees')
+        quantite_demandee = validated_data.get('quantite')
+
+        if piece_detachee:
+            if quantite_demandee > piece_detachee.quantite:
+                raise serializers.ValidationError({
+                    "quantite": f"La quantité demandée ({quantite_demandee}) dépasse la quantité disponible ({piece_detachee.quantite})."
+                })
+            
+            validated_data['prix_piece_detachees'] = piece_detachee.prix_unitaire
+
+            piece_detachee.quantite -= quantite_demandee
+            piece_detachee.save()
+
+        return super().create(validated_data)
+    
+    def update(self, instance, validated_data):
+        piece_detachee = validated_data.get('pieces_detachees', instance.pieces_detachees)
+        nouvelle_quantite = validated_data.get('quantite', instance.quantite)
+
+        if piece_detachee:
+            # Restaurer la quantité précédente dans la pièce détachée
+            piece_detachee.quantite += instance.quantite
+
+            # Valider la nouvelle quantité
+            if nouvelle_quantite > piece_detachee.quantite:
+                raise serializers.ValidationError({
+                    "quantite": f"La nouvelle quantité ({nouvelle_quantite}) dépasse la quantité disponible ({piece_detachee.quantite})."
+                })
+
+            piece_detachee.quantite -= nouvelle_quantite
+            piece_detachee.save()
+
+        return super().update(instance, validated_data)
+
+    def get_total(self, obj):
+        """Calcule le total pour un objet spécifique."""
+        if obj.quantite is not None and obj.prix_piece_detachees is not None:
+            return obj.quantite * obj.prix_piece_detachees
+        return 0
+
+    def get_somme_totale(self, obj):
+        """Calcule la somme totale pour tous les objets liés à la même activité."""
+        if obj.activite_tache:
+            # Récupérer tous les objets liés à l'activité
+            activite_pieces = ActiviteTachePieceDetachee.objects.filter(activite_tache=obj.activite_tache)
+
+            # Calculer la somme totale
+            return sum(
+                (piece.quantite or 0) * (piece.prix_piece_detachees or 0)
+                for piece in activite_pieces
+            )
+        return 0
+    
+    
+class NotificationSerializer(serializers.ModelSerializer):
+    vue = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Notification
+        fields = ['id', 'message', 'piece_detachee', 'date_creation', 'vue']
+
+    def get_vue(self, obj):
+        user = self.context['request'].user
+        try:
+            user_notification = UserNotification.objects.get(user=user, notification=obj)
+            return user_notification.vue
+        except UserNotification.DoesNotExist:
+            return False

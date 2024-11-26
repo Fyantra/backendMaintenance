@@ -52,21 +52,30 @@ class MarqueSousSerializer(MereSousSerializer):
 class StatusSousSerializer(MereSousSerializer):
     class Meta:
         model = Status
-        fields = ['id','nom_status', 'couleur']
+        fields = ['id','nom_status', 'identifiant', 'couleur']
 
 
 class MachineSousSerializer(MereSousSerializer):
     type = TypeSousSerializer(read_only=True)
-    status = StatusSousSerializer(read_only=True)
     marque = MarqueSousSerializer(read_only=True)
     atelier = AtelierSousSerializer(read_only=True)
     chaine = ChaineSousSerializer(read_only=True)
     
     class Meta:
         model = Machine
-        fields = ['id', 'nom_machine', 'numero_de_serie', 'type', 'marque',  'date_mis_en_place','date_acquisition','status', 
+        fields = ['id', 'nom_machine', 'numero_de_serie', 'type', 'marque',  'date_mis_en_place','date_acquisition','identifiant_status_machine', 
                   'atelier', 'chaine' , 'date_hors_service', 'image', 'description','date_creation']
-        
+
+class HistoriqueDeplacementMachineSousSerializer(serializers.ModelSerializer):  #N`herite pas de MereSousSerializer car on veut afficher tous les machines
+    type = TypeSousSerializer(read_only=True)
+    marque = MarqueSousSerializer(read_only=True)
+    atelier = AtelierSousSerializer(read_only=True)
+    chaine = ChaineSousSerializer(read_only=True)
+    
+    class Meta:
+        model = Machine
+        fields = ['id', 'nom_machine', 'numero_de_serie', 'type', 'marque',  'date_mis_en_place','date_acquisition','identifiant_status_machine', 
+                  'atelier', 'chaine' , 'date_hors_service', 'image', 'description','date_creation']        
         
 class PieceDetacheeSousSerializer(MereSousSerializer):
     modele = ModeleSousSerializer(read_only=True)
@@ -75,3 +84,22 @@ class PieceDetacheeSousSerializer(MereSousSerializer):
     class Meta:
         model = PieceDetachee
         fields = ['id','nom_piecedetache', 'modele' ,'prix_unitaire', 'quantite', 'stock_min', 'stock_max', 'emplacement','image']
+
+class PieceDetacheeActiviteSousSerializer(serializers.ModelSerializer):     #pour les pieces detachees dans les activites
+    modele = ModeleSousSerializer(read_only=True)
+    emplacement = AtelierSousSerializer(read_only=True)
+    
+    class Meta:
+        model = PieceDetachee
+        fields = ['id','nom_piecedetache', 'modele' ,'prix_unitaire', 'quantite', 'stock_min', 'stock_max', 'emplacement','image']
+        
+class MotifTacheSousSerializer(MereSousSerializer):
+    class Meta:
+        model = MotifTache
+        fields = ['id', 'nom_motif_tache']
+        
+class StatusTacheSousSerializer(MereSousSerializer):
+    class Meta:
+        model = StatusTache
+        fields = ['id', 'nom_status_tache', 'identifiant', 'couleur']
+        

@@ -3,12 +3,13 @@
 # Create your views here.
 
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated, AllowAny    #AllowAny: tous le monde peut acceder
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser    #AllowAny: tous le monde peut acceder
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate
 from .models import Utilisateur
+from utilisateur.permissions import IsChef, IsResponsable
 from .serializers import UtilisateurSerializer
 
 class UtilisateurViewSet(viewsets.ModelViewSet):        #gerer tous les CRUD utilisateur
@@ -19,7 +20,7 @@ class UtilisateurViewSet(viewsets.ModelViewSet):        #gerer tous les CRUD uti
         if self.action == 'create':  # Permet à tout le monde de créer un compte utilisateur
             permission_classes = [AllowAny]
         else:  # Les autres actions nécessitent une authentification
-            permission_classes = [IsAuthenticated]
+            permission_classes = [IsAuthenticated, IsChef, IsResponsable]
         return [permission() for permission in permission_classes]
 
 # def get_tokens_for_user(user):
