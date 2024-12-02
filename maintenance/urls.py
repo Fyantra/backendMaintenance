@@ -40,6 +40,8 @@ routerFournisseur.register(r'fournisseurs', FournisseurViewSet)
 
 routerPiece = DefaultRouter()
 routerPiece.register(r'piecedetachees', PieceDetacheeViewSet)
+routerPiece.register(r'reapprovisionnements', ReapprovisionnementPieceDetacheeViewSet)
+routerPiece.register(r'historique_mouvement_pieces', HistoriqueMouvementPieceDetacheeViewSet)
 
 urlpatterns = [
     path('maintenance_api/machine/', include(routermachine.urls)),

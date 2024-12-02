@@ -105,12 +105,12 @@ class PieceDetachee(models.Model):
     description = models.TextField(null=True, blank=True, verbose_name="Description")
     modele = models.ForeignKey(Modele, on_delete=models.SET_NULL,null=True,verbose_name="Modele")
     date_achat = models.DateTimeField(null=True, blank=True, verbose_name="Date d'achat")
-    quantite = models.PositiveIntegerField(null=False, default=0 ,verbose_name="Quantite")
+    quantite = models.PositiveIntegerField(null=False, default=1 ,verbose_name="Quantite")
     prix_unitaire = models.DecimalField(max_digits=10, decimal_places=2, null=False, verbose_name="Prix unitaire")
     emplacement = models.ForeignKey(Atelier,on_delete=models.SET_NULL,null=True,verbose_name="Emplacement")      #emplacement du piece detache
     fournisseur = models.ForeignKey(Fournisseur, on_delete=models.SET_NULL,null=True,verbose_name="Fournisseur")
     reference_fabricant = models.CharField(max_length=50, null=True, blank=True, verbose_name="Reference fabricant")
-    image = models.ImageField(upload_to='piece_detaches',null=True, verbose_name="Image")
+    image = models.ImageField(upload_to='piece_detaches',null=True, blank=True, verbose_name="Image")
     stock_min = models.PositiveIntegerField(null=False, verbose_name="Stock minimum")
     stock_max = models.PositiveIntegerField(null=True, verbose_name="Stock maximum")
     lot_de_reapprovisionnement = models.PositiveSmallIntegerField(null=True, verbose_name="Lot de réapprovisionnement")
@@ -119,6 +119,17 @@ class PieceDetachee(models.Model):
     
     def __str__(self):
         return self.nom_piecedetache
+    
+class ReapprovisionnementPieceDetachee(models.Model):
+    pieces_detachees = models.ForeignKey(PieceDetachee, on_delete=models.CASCADE,verbose_name="Pièce détachée a réapprovisionner")
+    prix_piece_detachees = models.DecimalField(max_digits=10, decimal_places=2, null=False, blank=True, verbose_name="Prix unitaire de pièce")
+    quantite = models.PositiveIntegerField(null=False, validators=[MaxValueValidator(99999)], verbose_name="Quantité de la pièce détachée")
+    date_realisation = models.DateTimeField(null=False, verbose_name="Date de realisation d`activite")
+    date_creation = models.DateTimeField(auto_now_add=True, null=True)
+    deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
+    
+    def __str__(self):
+        return f"Réapprovisionnement de {self.pieces_detachees.nom_piecedetache}"
     
 #################################################################################################################################
         
@@ -208,6 +219,9 @@ class ActiviteTache(models.Model):
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
     deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
     
+    def __str__(self):
+        return self.description
+    
 class ActiviteTachePieceDetachee(models.Model):
     activite_tache = models.ForeignKey(ActiviteTache, related_name='activite_tache', on_delete=models.CASCADE,null=True, verbose_name="Activite")
     pieces_detachees = models.ForeignKey(PieceDetachee, related_name='pieces_detachees', on_delete=models.CASCADE, null=True, verbose_name="Pièce détachée liée a l`activite")
@@ -223,7 +237,28 @@ class ActiviteTachePieceDetachee(models.Model):
 class HistoriqueTache(models.Model):
     tache = models.ForeignKey(Tache, on_delete=models.SET_NULL,null=True,verbose_name="Tache Machine")
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
+        
+class HistoriqueMouvementPieceDetachee(models.Model):
+    SOURCE_CHOICES = [
+        ('REAPPROVISIONNEMENT', 'Réapprovisionnement'),
+        ('CONSOMMATION', 'Consommation'),
+        ('RETOUR_CONSOMMATION', 'Retour de consommation'),
+        ('INVENTAIRE', 'Inventaire de pièce détachée')
+    ]
     
+    piece_detachee = models.ForeignKey(PieceDetachee, on_delete=models.CASCADE, verbose_name="Pièce détachée")
+    tache = models.ForeignKey(Tache, on_delete=models.CASCADE, null=True, verbose_name="Reference tache")      #pour savoir dans quel tache a eu l`action`
+    source = models.CharField(max_length=50, choices=SOURCE_CHOICES, verbose_name="Source du mouvement")
+    date_realisation = models.DateTimeField(verbose_name="Date de réalisation")
+    quantite = models.IntegerField(verbose_name="Quantité du mouvement")  # Positif pour réapprovisionnement, négatif pour consommation
+    cout = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Coût du mouvement")
+    quantite_piece = models.PositiveIntegerField(verbose_name="Quantité actuelle de la pièce détachée")
+    date_creation = models.DateTimeField(auto_now_add=True, null=True)
+
+    def __str__(self):
+        return f"{self.piece_detachee.nom_piecedetache} - {self.source} ({self.date_realisation})"
+
+
 ##################################NOTIFICATION################################
 class Notification(models.Model):
     message = models.TextField(verbose_name="Message de la notification")

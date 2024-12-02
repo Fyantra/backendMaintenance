@@ -14,7 +14,7 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return Notification.objects.filter(utilisateurs=user)
+        return Notification.objects.filter(utilisateurs=user).order_by('-date_creation')
     
     @action(detail=True, methods=['post'], url_path='marquer-vue')
     def marquer_vue(self, request, pk=None):

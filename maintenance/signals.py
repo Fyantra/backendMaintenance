@@ -55,26 +55,42 @@ def create_historique_tache(sender, instance, created, **kwargs):
         )
     else:
         return
-    
-@receiver(post_delete, sender=ActiviteTachePieceDetachee)       #en cas de suppression d`un activite, la quantite de PD doit revenir a l`initial 
+            
+@receiver(post_delete, sender=ActiviteTachePieceDetachee)     #en cas de suppression d`un activite, la quantite de PD doit revenir a l`initial 
 def restore_piece_detachee_quantite(sender, instance, **kwargs):
     piece_detachee = instance.pieces_detachees
     if piece_detachee:
         # Restaurer la quantité
         piece_detachee.quantite += instance.quantite
         piece_detachee.save()
-        
+
+        # Calcul du coût
+        cout = instance.quantite * instance.prix_piece_detachees
+
+        # Enregistrement dans l'historique des mouvements
+        HistoriqueMouvementPieceDetachee.objects.create(
+            piece_detachee=piece_detachee,
+            tache = instance.activite_tache.tache,
+            source='Retour de consommation',
+            date_realisation=instance.activite_tache.date_realisation,
+            quantite=instance.quantite,
+            cout=cout,
+            quantite_piece=piece_detachee.quantite  # Quantité actuelle après le retour
+        )
+
 
 @receiver(post_save, sender=PieceDetachee)      #notification en cas de stock insuffisant
 def verifier_stock_minimum(sender, instance, **kwargs):
     if instance.quantite < instance.stock_min:
         # Créer une notification si la quantité est sous le seuil
-        notification, created = Notification.objects.get_or_create(
+        notification = Notification.objects.create(
             piece_detachee=instance,
             message="Le stock de la pièce détachée '{}' est passé sous le seuil minimal.".format(instance.nom_piecedetache),
         )
         
-        if created:
-            # Associer la notification à tous les utilisateurs
-            for user in Utilisateur.objects.all():
-                UserNotification.objects.create(user=user, notification=notification)
+        # Associer la notification à tous les utilisateurs
+        utilisateurs = Utilisateur.objects.all()
+        user_notifications = [
+            UserNotification(user=user, notification=notification) for user in utilisateurs
+        ]
+        UserNotification.objects.bulk_create(user_notifications)

@@ -12,7 +12,7 @@ class BaseModelViewSet(viewsets.ModelViewSet):
     
 
     def get_queryset(self):
-        return self.queryset.filter(deleted_at__isnull=True)
+        return self.queryset.filter(deleted_at__isnull=True).order_by('-date_creation')
 
     def perform_destroy(self, instance):
        
