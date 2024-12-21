@@ -117,14 +117,14 @@ class MachineSerializer(serializers.ModelSerializer):
         queryset=PieceDetachee.objects.all(), many=True, source='pieces_detachees', allow_null=True, required= False
     )
     
-    total_duree = serializers.SerializerMethodField()       ##temps total passe sur le machine
+    total_duree_machine = serializers.SerializerMethodField()       ##temps total passe sur le machine
     
     class Meta:
         model = Machine
         fields = ['id', 'nom_machine', 'numero_de_serie', 'numero_de_moteur', 'type_id', 'type', 'marque_id', 'marque',  'date_mis_en_place',
                   'date_acquisition','identifiant_status_machine', 'atelier_id', 'atelier', 'chaine_id', 'chaine' , 'date_hors_service', 
                   'fournisseur_id', 'fournisseur',  'image', 'description', 'reference_fabricant', 
-                  'pieces_detachees_id', 'pieces_detachees' , 'total_duree',  'date_creation']
+                  'pieces_detachees_id', 'pieces_detachees' , 'total_duree_machine',  'date_creation']
     
     def create(self, validated_data):
         # Extraire les données pour les pièces détachées
@@ -152,10 +152,10 @@ class MachineSerializer(serializers.ModelSerializer):
 
         return instance
     
-    def get_total_duree(self, obj):
+    def get_total_duree_machine(self, obj):
         """Calcule la durée totale des tâches associées à une machine."""
         taches = Tache.objects.filter(machine=obj)
-        activites = ActiviteTache.objects.filter(tache__in=taches)
+        activites = ActiviteTache.objects.filter(tache__in=taches, deleted_at__isnull=True)
 
         total_heures = sum(activite.temps_passe_heure or 0 for activite in activites)
         total_minutes = sum(activite.temps_passe_minute or 0 for activite in activites)
@@ -240,17 +240,17 @@ class TacheSerializer(serializers.ModelSerializer):
         queryset=MotifTache.objects.all(), source='motif_tache', allow_null=True, required=False
     )
      
-    total_duree = serializers.SerializerMethodField() 
+    total_duree_tache = serializers.SerializerMethodField() 
         
     class Meta:
         model = Tache
         fields = ['id', 'description', 'machine', 'machine_id', 'motif_tache', 'motif_tache_id', 'identifiant_status_tache',
                   'date_debut', 'heure_debut', 'date_fin', 'heure_fin', 'temps_maintenance_heure', 'temps_maintenance_minute',
-                  'temps_arret_heure', 'temps_arret_minute', 'total_duree', 'date_creation']
+                  'temps_arret_heure', 'temps_arret_minute', 'total_duree_tache', 'date_creation']
         
-    def get_total_duree(self, obj):
+    def get_total_duree_tache(self, obj):
         """Calcule la durée totale de toutes les activités liées à une tâche."""
-        activites = ActiviteTache.objects.filter(tache=obj)
+        activites = ActiviteTache.objects.filter(tache=obj, deleted_at__isnull=True)
 
         # Somme des heures et minutes
         total_heures = sum(activite.temps_passe_heure or 0 for activite in activites)
@@ -385,19 +385,16 @@ class ReapprovisionnementPieceDetacheeSerializer(serializers.ModelSerializer):
         piece_detachee = validated_data['pieces_detachees']
         prix_piece_detachees = validated_data.get('prix_piece_detachees', piece_detachee.prix_unitaire)
 
-        # Vérification et mise à jour du prix si nécessaire
         if prix_piece_detachees != piece_detachee.prix_unitaire:
             piece_detachee.prix_unitaire = prix_piece_detachees
             piece_detachee.save()
 
         validated_data['prix_piece_detachees'] = prix_piece_detachees
 
-        # Mise à jour de la quantité de la pièce détachée
         quantite_reapprovisionnee = validated_data['quantite']
         piece_detachee.quantite += quantite_reapprovisionnee
         piece_detachee.save()
 
-        # Calcul du coût total du réapprovisionnement
         cout_reapprovisionnement = quantite_reapprovisionnee * prix_piece_detachees
 
         # Ajout dans l'historique des mouvements

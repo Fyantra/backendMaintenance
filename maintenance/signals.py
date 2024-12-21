@@ -42,7 +42,7 @@ def create_historique_mouvement(sender, instance, created, **kwargs):
             )
             
 @receiver(post_save, sender=Machine)        #supprimer les taches associes a ce machine
-def soft_delete_related_taches(sender, instance, **kwargs):
+def delete_related_taches(sender, instance, **kwargs):
     if instance.deleted_at:
         Tache.objects.filter(machine=instance, deleted_at__isnull=True).update(deleted_at=timezone.now())
 

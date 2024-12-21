@@ -77,7 +77,7 @@ class Marque(models.Model):
     def __str__(self):
         return self.nom_marque
     
-class Status(models.Model):
+class Status(models.Model):     #status machine
     nom_status = models.CharField(max_length=50, null=False, verbose_name="Nom de status")
     couleur = models.CharField(max_length=10, null=True, blank=True, verbose_name="Code couleur statut")
     identifiant = models.IntegerField(null=False, unique=True ,verbose_name="Identifiant statut machine")
@@ -124,7 +124,7 @@ class ReapprovisionnementPieceDetachee(models.Model):
     pieces_detachees = models.ForeignKey(PieceDetachee, on_delete=models.CASCADE,verbose_name="Pièce détachée a réapprovisionner")
     prix_piece_detachees = models.DecimalField(max_digits=10, decimal_places=2, null=False, blank=True, verbose_name="Prix unitaire de pièce")
     quantite = models.PositiveIntegerField(null=False, validators=[MaxValueValidator(99999)], verbose_name="Quantité de la pièce détachée")
-    date_realisation = models.DateTimeField(null=False, verbose_name="Date de realisation d`activite")
+    date_realisation = models.DateTimeField(null=False, verbose_name="Date de realisation de reapprovisionnement")
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
     deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
     
@@ -197,9 +197,9 @@ class Tache(models.Model):
     motif_tache = models.ForeignKey(MotifTache, on_delete=models.SET_NULL,null=True,verbose_name="Motif tache machine")
     identifiant_status_tache = models.IntegerField(null=False, blank=True, default=1 ,verbose_name="Identifiant statut tache")
     date_debut = models.DateField(null=False, verbose_name="Date debut de tache")
-    heure_debut = models.TimeField(null=True, verbose_name="Heure debut de tache")
+    heure_debut = models.TimeField(null=True, blank=True, verbose_name="Heure debut de tache")
     date_fin = models.DateField(null=False, verbose_name="Date fin de tache")
-    heure_fin = models.TimeField(null=True, verbose_name="Heure fin de tache")
+    heure_fin = models.TimeField(null=True, blank=True, verbose_name="Heure fin de tache")
     temps_maintenance_heure = models.PositiveIntegerField(null=True,blank=True, validators=[MaxValueValidator(99999)] , verbose_name="Temps de maintenance en heure")
     temps_maintenance_minute = models.PositiveIntegerField(null=True,default=0, blank=True, validators=[MaxValueValidator(59)] , verbose_name="Temps de maintenance en minute")
     temps_arret_heure = models.PositiveIntegerField(null=True,blank=True, validators=[MaxValueValidator(99999)], verbose_name="Temps d`arret en heure")
