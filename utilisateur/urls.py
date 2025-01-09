@@ -7,7 +7,7 @@ from utilisateur.views import UtilisateurViewSet, LoginView, TokenRefreshView
 # )
 
 router = DefaultRouter()
-router.register(r'users', UtilisateurViewSet)
+router.register(r'signup', UtilisateurViewSet)
 
 urlpatterns = [
     path('maintenance_api/', include(router.urls)),
