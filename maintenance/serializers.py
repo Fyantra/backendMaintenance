@@ -121,7 +121,7 @@ class MachineSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Machine
-        fields = ['id', 'nom_machine', 'numero_de_serie', 'numero_de_moteur', 'type_id', 'type', 'marque_id', 'marque',  'date_mis_en_place',
+        fields = ['id', 'numero_machine', 'nom_machine', 'numero_de_serie', 'numero_de_moteur', 'type_id', 'type', 'marque_id', 'marque',  'date_mis_en_place',
                   'date_acquisition','identifiant_status_machine', 'atelier_id', 'atelier', 'chaine_id', 'chaine' , 'date_hors_service', 
                   'fournisseur_id', 'fournisseur',  'image', 'description', 'reference_fabricant', 
                   'pieces_detachees_id', 'pieces_detachees' , 'total_duree_machine',  'date_creation']
