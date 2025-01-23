@@ -79,18 +79,33 @@ def restore_piece_detachee_quantite(sender, instance, **kwargs):
         )
 
 
-@receiver(post_save, sender=PieceDetachee)      #notification en cas de stock insuffisant
-def verifier_stock_minimum(sender, instance, **kwargs):
+@receiver(post_save, sender=PieceDetachee)
+def verifier_stock_limites(sender, instance, **kwargs):
+    utilisateurs = Utilisateur.objects.all()
+    notifications = []
+    user_notifications = []
+
+    # Vérification du stock minimum
     if instance.quantite < instance.stock_min:
-        # Créer une notification si la quantité est sous le seuil
-        notification = Notification.objects.create(
+        notification_min = Notification.objects.create(
             piece_detachee=instance,
             message="Le stock de la pièce détachée '{}' est passé sous le seuil minimal.".format(instance.nom_piecedetache),
         )
-        
-        # Associer la notification à tous les utilisateurs
-        utilisateurs = Utilisateur.objects.all()
-        user_notifications = [
-            UserNotification(user=user, notification=notification) for user in utilisateurs
-        ]
+        notifications.append(notification_min)
+
+    # Vérification du stock maximum
+    if instance.stock_max and instance.quantite > instance.stock_max:
+        notification_max = Notification.objects.create(
+            piece_detachee=instance,
+            message="Le stock de la pièce détachée '{}' a dépassé le seuil maximal.".format(instance.nom_piecedetache),
+        )
+        notifications.append(notification_max)
+
+    # Associer les notifications à tous les utilisateurs
+    for notification in notifications:
+        user_notifications.extend(
+            [UserNotification(user=user, notification=notification) for user in utilisateurs]
+        )
+
+    if user_notifications:
         UserNotification.objects.bulk_create(user_notifications)

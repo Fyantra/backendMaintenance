@@ -4,7 +4,7 @@ from utilisateur.models import Utilisateur
 
 # Create your models here.
 class Endroit(models.Model):        #ex: RDC, R+1, R+2, ....
-    nom_endroit = models.CharField(max_length=50, null=False, unique=True, verbose_name="Endroit")
+    nom_endroit = models.CharField(max_length=50, null=False, verbose_name="Endroit")
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
     deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
     
@@ -13,7 +13,7 @@ class Endroit(models.Model):        #ex: RDC, R+1, R+2, ....
     
 class Responsable(models.Model):
     nom_responsable = models.CharField(max_length=50, null=False)
-    email = models.EmailField(null=True, blank=True, unique=True, verbose_name="Email")
+    email = models.EmailField(null=True, blank=True, verbose_name="Email")
     telephone = models.CharField(max_length=15, null=True, blank=True, verbose_name="Téléphone")
     photo = models.ImageField(upload_to='responsables', null=True, blank=True, verbose_name="Photo")
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
@@ -23,7 +23,7 @@ class Responsable(models.Model):
         return self.nom_responsable
     
 class Atelier(models.Model):
-    nom_atelier = models.CharField(max_length=50, null=False, unique=True, verbose_name="Nom d`atelier")
+    nom_atelier = models.CharField(max_length=50, null=False, verbose_name="Nom d`atelier")
     endroit = models.ForeignKey(Endroit, null=True,on_delete=models.SET_NULL, verbose_name="Endroit")
     responsable = models.ForeignKey(Responsable, null=True,on_delete=models.SET_NULL, verbose_name="Responsable")
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
@@ -33,7 +33,7 @@ class Atelier(models.Model):
         return self.nom_atelier
     
 class Chaine(models.Model):
-    nom_chaine = models.CharField(max_length=50, null=False, unique=True, verbose_name="Type de machine")
+    nom_chaine = models.CharField(max_length=50, null=False, verbose_name="Type de machine")
     atelier = models.ForeignKey(Atelier, null=True,on_delete=models.SET_NULL, verbose_name="Chaine")
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
     deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
@@ -44,7 +44,7 @@ class Chaine(models.Model):
 ########################################################################################################################
         
 class Modele(models.Model):
-    nom_modele = models.CharField(max_length=50, unique=True, null=False, verbose_name="Nom du modèle")
+    nom_modele = models.CharField(max_length=50, null=False, verbose_name="Nom du modèle")
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
     deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
     
@@ -53,14 +53,14 @@ class Modele(models.Model):
     
     
 class Type(models.Model):
-    nom_type = models.CharField(max_length=50, null=False, unique=True, verbose_name="Type de machine")
+    nom_type = models.CharField(max_length=50, null=False, verbose_name="Type de machine")
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
     deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
     
     def __str__(self):
         return self.nom_type
     
-class NomMachine(models.Model):
+class NomMachine(models.Model):     ##n`est pas utilisee
     nom_machine = models.CharField(max_length=50, null=False, unique=True, verbose_name="Nom de la machine")
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
     deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
@@ -70,7 +70,7 @@ class NomMachine(models.Model):
     
 
 class Marque(models.Model):
-    nom_marque = models.CharField(max_length=50, null=False, unique=True, verbose_name="Marque de la machine")
+    nom_marque = models.CharField(max_length=50, null=False, verbose_name="Marque de la machine")
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
     deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
     
@@ -137,7 +137,7 @@ class Machine(models.Model):
     nom_machine = models.CharField(max_length=50, null=False, verbose_name="Nom de machine")
     numero_machine = models.CharField(max_length=100, null=False, default=0, verbose_name="Numero de la machine")
     numero_de_serie = models.CharField(max_length=100, null=False, unique=True, verbose_name="Numero de serie")
-    numero_de_moteur = models.CharField(max_length=50, null=True, blank=True, verbose_name="Numero de moteur")
+    numero_de_moteur = models.CharField(max_length=50, null=True, unique=True, blank=True, verbose_name="Numero de moteur")
     type = models.ForeignKey(Type, on_delete=models.SET_NULL,null=True,verbose_name="Type")     #ex: DDL 9000 C 
     marque = models.ForeignKey(Marque, on_delete=models.SET_NULL,null=True,verbose_name="Marque")
     atelier = models.ForeignKey(Atelier,on_delete=models.SET_NULL,null=True,verbose_name="Atelier")
