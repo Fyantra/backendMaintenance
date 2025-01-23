@@ -15,7 +15,7 @@ class Responsable(models.Model):
     nom_responsable = models.CharField(max_length=50, null=False)
     email = models.EmailField(null=True, blank=True, unique=True, verbose_name="Email")
     telephone = models.CharField(max_length=15, null=True, blank=True, verbose_name="Téléphone")
-    photo = models.ImageField(null=True, verbose_name="Photo")
+    photo = models.ImageField(upload_to='responsables', null=True, blank=True, verbose_name="Photo")
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
     deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
     
