@@ -135,7 +135,7 @@ class ReapprovisionnementPieceDetachee(models.Model):
         
 class Machine(models.Model):
     nom_machine = models.CharField(max_length=50, null=False, verbose_name="Nom de machine")
-    numero_machine = models.CharField(max_length=100, null=False, default=0, verbose_name="Numero de la machine")
+    numero_machine = models.CharField(max_length=100, null=False, default='0000', verbose_name="Numero de la machine")
     numero_de_serie = models.CharField(max_length=100, null=False, unique=True, verbose_name="Numero de serie")
     numero_de_moteur = models.CharField(max_length=50, null=True, unique=True, blank=True, verbose_name="Numero de moteur")
     type = models.ForeignKey(Type, on_delete=models.SET_NULL,null=True,verbose_name="Type")     #ex: DDL 9000 C 

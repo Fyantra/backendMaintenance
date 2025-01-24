@@ -130,6 +130,11 @@ class MachineSerializer(serializers.ModelSerializer):
         # Extraire les données pour les pièces détachées
         pieces_detachees_data = validated_data.pop('pieces_detachees', [])
         
+        # Formater le numero_machine
+        # numero_machine = validated_data.get('numero_machine')
+        # if numero_machine and len(numero_machine) < 4:
+        #     validated_data['numero_machine'] = numero_machine.zfill(4)
+        
         machine = Machine.objects.create(**validated_data)
 
         # Ajouter les pièces détachées
