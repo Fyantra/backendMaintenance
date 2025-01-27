@@ -74,7 +74,7 @@ class HistoriqueDeplacementMachineSousSerializer(serializers.ModelSerializer):  
     
     class Meta:
         model = Machine
-        fields = ['id', 'nom_machine', 'numero_de_serie', 'type', 'marque',  'date_mis_en_place','date_acquisition','identifiant_status_machine', 
+        fields = ['id', 'nom_machine', 'numero_machine', 'numero_de_serie', 'type', 'marque',  'date_mis_en_place','date_acquisition','identifiant_status_machine', 
                   'atelier', 'chaine' , 'date_hors_service', 'image', 'description','date_creation']        
         
 class PieceDetacheeSousSerializer(MereSousSerializer):

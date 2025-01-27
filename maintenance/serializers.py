@@ -97,6 +97,11 @@ class MachineSerializer(serializers.ModelSerializer):
         queryset=Type.objects.all(), source='type', allow_null=True, required=False
     )
     
+    modele = ModeleSousSerializer(read_only=True)
+    modele_id = serializers.PrimaryKeyRelatedField(
+        queryset=Modele.objects.all(), source='modele', allow_null=True, required=False
+    )
+    
     atelier = AtelierSousSerializer(read_only=True)
     atelier_id = serializers.PrimaryKeyRelatedField(
         queryset=Atelier.objects.all(), source='atelier', allow_null=True, required=False
@@ -121,8 +126,8 @@ class MachineSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Machine
-        fields = ['id', 'numero_machine', 'nom_machine', 'numero_de_serie', 'numero_de_moteur', 'type_id', 'type', 'marque_id', 'marque',  'date_mis_en_place',
-                  'date_acquisition','identifiant_status_machine', 'atelier_id', 'atelier', 'chaine_id', 'chaine' , 'date_hors_service', 
+        fields = ['id', 'numero_machine', 'nom_machine', 'numero_de_serie', 'numero_de_moteur', 'type_id', 'type', 'marque_id', 'marque', 'modele_id', 'modele', 
+                  'date_mis_en_place','date_acquisition','identifiant_status_machine', 'atelier_id', 'atelier', 'chaine_id', 'chaine' , 'date_hors_service', 
                   'fournisseur_id', 'fournisseur',  'image', 'description', 'reference_fabricant', 
                   'pieces_detachees_id', 'pieces_detachees' , 'total_duree_machine',  'date_creation']
     
@@ -131,9 +136,9 @@ class MachineSerializer(serializers.ModelSerializer):
         pieces_detachees_data = validated_data.pop('pieces_detachees', [])
         
         # Formater le numero_machine
-        # numero_machine = validated_data.get('numero_machine')
-        # if numero_machine and len(numero_machine) < 4:
-        #     validated_data['numero_machine'] = numero_machine.zfill(4)
+        numero_machine = validated_data.get('numero_machine')
+        if numero_machine and len(numero_machine) < 4:
+            validated_data['numero_machine'] = numero_machine.zfill(4)
         
         machine = Machine.objects.create(**validated_data)
 
@@ -144,6 +149,10 @@ class MachineSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         pieces_detachees_data = validated_data.pop('pieces_detachees', [])
+        
+        numero_machine = validated_data.get('numero_machine')
+        if numero_machine and len(numero_machine) < 4:
+            validated_data['numero_machine'] = numero_machine.zfill(4)
 
         # Mettre à jour les autres champs de la machine principale en utilisant validated_data
         for attr, value in validated_data.items():

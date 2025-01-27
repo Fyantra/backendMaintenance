@@ -139,6 +139,7 @@ class Machine(models.Model):
     numero_de_serie = models.CharField(max_length=100, null=False, unique=True, verbose_name="Numero de serie")
     numero_de_moteur = models.CharField(max_length=50, null=True, unique=True, blank=True, verbose_name="Numero de moteur")
     type = models.ForeignKey(Type, on_delete=models.SET_NULL,null=True,verbose_name="Type")     #ex: DDL 9000 C 
+    modele = models.ForeignKey(Modele, on_delete=models.SET_NULL,null=True,verbose_name="Modele")
     marque = models.ForeignKey(Marque, on_delete=models.SET_NULL,null=True,verbose_name="Marque")
     atelier = models.ForeignKey(Atelier,on_delete=models.SET_NULL,null=True,verbose_name="Atelier")
     chaine = models.ForeignKey(Chaine,on_delete=models.SET_NULL,null=True,verbose_name="Chaine")  
