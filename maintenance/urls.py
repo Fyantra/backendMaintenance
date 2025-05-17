@@ -7,6 +7,7 @@ from .views.fournisseurView import *
 from .views.piecedetacheeView import *
 from .views.tacheView import *
 from .views.notificationView import *
+from .views.exportView import *
 
 routermachine = DefaultRouter()
 routermachine.register(r'machines', MachineViewSet)
@@ -50,4 +51,9 @@ urlpatterns = [
     path('maintenance_api/piece/', include(routerPiece.urls)),
     path('maintenance_api/tache/', include(routerTache.urls)),
     path('maintenance_api/', include(routerNotification.urls)),
+    
+    #URL Export
+    path('maintenance_api/export/<str:model_name>/<str:export_format>/', ExportView.as_view()),
+    path('maintenance_api/export-tache/<str:export_format>/', ExportTacheView.as_view()),
+    path('maintenance_api/export-tache/<int:pk>/<str:export_format>/', ExportTacheView.as_view()),
 ]

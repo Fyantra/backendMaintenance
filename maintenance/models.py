@@ -13,6 +13,7 @@ class Endroit(models.Model):        #ex: RDC, R+1, R+2, ....
     
 class Responsable(models.Model):
     nom_responsable = models.CharField(max_length=50, null=False)
+    responsabilite = models.CharField(max_length=50, null=True, blank=True, verbose_name="Responsabilité")
     email = models.EmailField(null=True, blank=True, verbose_name="Email")
     telephone = models.CharField(max_length=15, null=True, blank=True, verbose_name="Téléphone")
     photo = models.ImageField(upload_to='responsables', null=True, blank=True, verbose_name="Photo")
@@ -68,7 +69,6 @@ class NomMachine(models.Model):     ##n`est pas utilisee
     def __str__(self):
         return self.nom_machine
     
-
 class Marque(models.Model):
     nom_marque = models.CharField(max_length=50, null=False, verbose_name="Marque de la machine")
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
