@@ -11,7 +11,7 @@ class EndroitSerializer(serializers.ModelSerializer):
 class ResponsableSerializer(serializers.ModelSerializer):
     class Meta:
         model = Responsable
-        fields = ['id', 'nom_responsable', 'email', 'telephone', 'photo' , 'date_creation']
+        fields = ['id', 'nom_responsable', 'responsabilite' ,'email', 'telephone', 'photo' , 'date_creation']
 
 class AtelierSerializer(serializers.ModelSerializer):
     endroit = EndroitSousSerializer(read_only=True)
