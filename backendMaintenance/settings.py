@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize', 
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
@@ -89,13 +90,14 @@ ROOT_URLCONF = 'backendMaintenance.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'maintenance/export/templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.i18n',
                 'django.contrib.messages.context_processors.messages',
             ],
         },
@@ -111,7 +113,7 @@ WSGI_APPLICATION = 'backendMaintenance.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'akanjo_maintenance',
+        'NAME': 'maintenance_test',
         'USER': 'postgres',
         'PASSWORD': '0000',
         'HOST': 'localhost',  
