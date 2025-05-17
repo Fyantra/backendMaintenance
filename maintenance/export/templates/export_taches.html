@@ -1,0 +1,209 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Tableau de Maintenance Unifié</title>
+  <style>
+    @page {
+      size: A3 portrait; 
+      margin: 15mm 10mm 15mm 10mm; /* top, right, bottom, left */
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 10pt;
+    }
+
+    /*Header*/
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .header .left {
+      font-size: 15px;
+    }
+    
+    .header .right {
+      height: 60px;
+      object-fit: contain;
+    }
+    
+    .title-section {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .title-section h1 {
+      margin: 10px 0 0 0;
+      font-size: 22px;
+      font-weight: bold;
+      color: #0074A2;
+      border-bottom: 2px solid #0074A2;
+      display: inline-block;
+      padding-bottom: 5px;
+    }    
+
+    .logo{
+      height: 85px;
+      width: 85px;
+    }
+
+    .right{
+      margin-bottom: 5%;
+    }
+    /*Fin Header*/
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    thead th {
+      background-color: #0074A2;
+      color: white;
+      font-weight: bold;
+    }
+    .activity-row {
+      background-color: #f0f0f0;
+    }
+
+    .activity-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    .activity-table th, .activity-table td {
+      border: 1px solid #ccc;
+      padding: 5px 8px;
+    }
+
+    .activity-table th {
+      background-color: #4C4C4C;
+      color: white;
+    }
+
+    .piece-prix {
+      font-weight: bold;
+    }
+
+    .tr-tache{
+      background-color: #e3edf1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="left">Date de génération : {{ now|date:"d/m/Y à H:i" }}</div>
+    <div class="right">
+      <img class="logo" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCa6bjPlDqwm7CSvc4SZeZC3wUjzUw311T8A&s" alt="Logo"> 
+    </div>
+  </div>
+    <div class="title-section">
+    <h1>Rapport de Tâches de Maintenance</h1>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Description du tâche</th>
+        <th>Équipement</th>
+        <th>Tâche créée le</th>
+        <th>Programmée pour le</th>
+        <th>Temps de maintenance planifiée</th>
+        <th>Temps passé</th>
+        <th>Degré</th>
+        <th>Temps d'arrêt planifiée</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tache in taches_data %}
+      <tr class="tr-tache">
+        <td><b>{{ tache.instance.description }}</b></td>
+        <td>{{ tache.instance.machine.nom_machine }}</td>
+        <td>{{ tache.instance.date_creation|date:"d/m/Y à H:i" }}</td>
+        <td>
+          {{ tache.instance.date_debut|date:"d/m/Y" }}
+          {% if tache.instance.heure_debut %}
+            à {{ tache.instance.heure_debut|time:"H:i" }}
+          {% endif %}
+           - 
+          {{ tache.instance.date_fin|date:"d/m/Y" }}
+          {% if tache.instance.heure_fin %}
+            à {{ tache.instance.heure_fin|time:"H:i" }}
+          {% endif %}
+        </td>
+        <td>{{ tache.instance.temps_maintenance_heure }}h {{ tache.instance.temps_maintenance_minute }}mn</td>
+        <td>{{ tache.total_duree_tache  }}</td>
+        <td>{{ tache.instance.motif_tache.nom_motif_tache }}</td>
+        <td>{{ tache.instance.temps_arret_heure }}h {{ tache.instance.temps_arret_minute }}mn</td>
+      </tr>
+      {% if not tache.activites %}
+        <tr class="activity-row">
+          <td colspan="12"></td>
+        </tr>
+      {% endif %}
+  
+      {% if tache.activites %}
+      <tr class="activity-row">
+        <td colspan="12">
+          <table class="activity-table">
+            <thead>
+              <tr>
+                <th>Activité réalisée le</th>
+                <th>Description de l'activité</th>
+                <th>Pièces détachées utilisées</th>
+                <th>Temps passé</th>
+                <th>Activité créée le</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for act in tache.activites %}
+              <tr>
+                <td>{{ act.instance.date_realisation|date:"d/m/Y H:i" }}</td>
+                <td>{{ act.instance.description }}</td>
+                <td>
+                  {% if act.pieces %}
+                  <ul>
+                    {% for piece in act.pieces %}
+                      <li>
+                        <b>{{ piece.instance.pieces_detachees.nom_piecedetache }}</b> :
+                        {{ piece.instance.quantite }} × {{ piece.instance.prix_piece_detachees|intcomma }} Ar =
+                        {{ piece.total|intcomma }} Ar
+                      </li>
+                    {% endfor %}
+                  </ul>
+                  {% else %}
+                    Aucune pièce détachée
+                  {% endif %}
+                </td>
+                <td>{{ act.instance.temps_passe_heure }}h {{ act.instance.temps_passe_minute }}mn</td>
+                <td>{{ act.instance.date_creation|date:"d/m/Y à H:i" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
+    </table>
+
+    <p style="font-size: 14px; font-weight: bold; margin-top: 30px; color:#0074A2">Total des tâches : {{ total_taches }}</p>
+    <p style="font-size: 14px; font-weight: bold; color:#4C4C4C;">Total des activités : {{ total_activites }}</p>
+    
+</body>
+</html>
