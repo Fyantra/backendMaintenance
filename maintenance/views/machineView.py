@@ -1,9 +1,14 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from ..models import Machine, Modele, Type, NomMachine, Marque, Status, MachineRelation, HistoriqueMouvementMachine
-from ..serializers import MachineSerializer, ModeleSerializer, TypeSerializer, NomMachineSerializer, MarqueSerializer, StatusSerializer, MachineRelationSerializer, HistoriqueMouvementMachineSerializer
+from ..serializers import (MachineSerializer, ModeleSerializer, TypeSerializer, NomMachineSerializer, 
+    MarqueSerializer, StatusSerializer, MachineRelationSerializer, HistoriqueMouvementMachineSerializer, DocumentSerializer)
 from utilisateur.permissions import IsChef
 from django.utils.timezone import now
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
+from ..models import Document
 
 #####################################CRUD#####################################
 class BaseModelViewSet(viewsets.ModelViewSet):
@@ -28,6 +33,38 @@ class BaseModelViewSet(viewsets.ModelViewSet):
 class MachineViewSet(BaseModelViewSet):
     queryset = Machine.objects.all()
     serializer_class = MachineSerializer
+    
+    @action(detail=True, methods=['post'], url_path='add_document')
+    def add_document(self, request, pk=None):
+        machine = self.get_object()
+        serializer = DocumentSerializer(data=request.data, context={'request': request})
+        
+        if serializer.is_valid():
+            document = serializer.save()
+            machine.documents.add(document)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['get'], url_path='list_documents')
+    def get_documents(self, request, pk=None):
+        machine = self.get_object()
+        documents = machine.documents.all()
+        serializer = DocumentSerializer(documents, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['delete'], url_path='delete_document/(?P<document_id>\d+)')
+    def remove_document(self, request, pk=None, document_id=None):
+        machine = self.get_object()
+        try:
+            document = machine.documents.get(id=document_id)
+            machine.documents.remove(document)
+            document.delete()  # Supprime aussi le fichier physique
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Document.DoesNotExist:
+            return Response(
+                {"error": "Document non trouvé"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
     
 class MachineRelationViewSet(viewsets.ModelViewSet):
     queryset = MachineRelation.objects.all()

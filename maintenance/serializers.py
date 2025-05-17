@@ -123,13 +123,14 @@ class MachineSerializer(serializers.ModelSerializer):
     )
     
     total_duree_machine = serializers.SerializerMethodField()       ##temps total passe sur le machine
+    total_duree_machine_liee = serializers.SerializerMethodField()
     
     class Meta:
         model = Machine
         fields = ['id', 'numero_machine', 'nom_machine', 'numero_de_serie', 'numero_de_moteur', 'type_id', 'type', 'marque_id', 'marque', 'modele_id', 'modele', 
                   'date_mis_en_place','date_acquisition','identifiant_status_machine', 'atelier_id', 'atelier', 'chaine_id', 'chaine' , 'date_hors_service', 
                   'fournisseur_id', 'fournisseur',  'image', 'description', 'reference_fabricant', 
-                  'pieces_detachees_id', 'pieces_detachees' , 'total_duree_machine',  'date_creation']
+                  'pieces_detachees_id', 'pieces_detachees' , 'total_duree_machine', 'total_duree_machine_liee', 'date_creation']
     
     def create(self, validated_data):
         # Extraire les données pour les pièces détachées
@@ -179,7 +180,28 @@ class MachineSerializer(serializers.ModelSerializer):
 
         return f"{total_heures}h {total_minutes}mn"
     
+    def get_total_duree_machine_liee(self, obj):
+        """Calcule la durée totale des tâches associées aux machines liées à une machine principale."""
+        
+        # Machine principale incluse
+        machines_a_inclure = [obj]
+        
+        machines_liees = Machine.objects.filter(machine_liee__machine_principale=obj)
+        machines_a_inclure += list(machines_liees)
 
+        taches = Tache.objects.filter(machine__in=machines_a_inclure, deleted_at__isnull=True)
+
+        activites = ActiviteTache.objects.filter(tache__in=taches, deleted_at__isnull=True)
+
+        total_heures = sum(activite.temps_passe_heure or 0 for activite in activites)
+        total_minutes = sum(activite.temps_passe_minute or 0 for activite in activites)
+
+        total_heures += total_minutes // 60
+        total_minutes = total_minutes % 60
+
+        return f"{total_heures}h {total_minutes}mn"
+
+    
 class PieceDetacheeSerializer(serializers.ModelSerializer):
     modele = ModeleSousSerializer(read_only=True)
     emplacement = AtelierSousSerializer(read_only= True)
@@ -428,3 +450,32 @@ class HistoriqueMouvementPieceDetacheeSerializer(serializers.ModelSerializer):
     class Meta:
         model = HistoriqueMouvementPieceDetachee
         fields = '__all__'
+        
+class DocumentSerializer(serializers.ModelSerializer):
+    file_url = serializers.SerializerMethodField()
+    file_size = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Document
+        fields = [
+            'id', 'name', 'document_type', 'file', 'link', 
+            'description', 'created_at', 'file_url', 'file_size'
+        ]
+        read_only_fields = ['created_at', 'file_url', 'file_size']
+
+    def get_file_url(self, obj):
+        if obj.file:
+            return self.context['request'].build_absolute_uri(obj.file.url)
+        return None
+
+    def get_file_size(self, obj):
+        if obj.file:
+            return obj.file.size
+        return None
+
+    def validate(self, data):
+        if data.get('document_type') == 'file' and not data.get('file'):
+            raise serializers.ValidationError("Un fichier est requis pour ce type de document.")
+        if data.get('document_type') == 'link' and not data.get('link'):
+            raise serializers.ValidationError("Un lien est requis pour ce type de document.")
+        return data

@@ -1,0 +1,194 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Détail de la Tâche</title>
+  <style>
+    @page {
+        size: A3 portrait; 
+        margin: 15mm 10mm 15mm 10mm; /* top, right, bottom, left */
+    }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .header .left {
+      font-size: 15px;
+    }
+    .title-section {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .title-section h1 {
+      margin: 10px 0 0 0;
+      font-size: 24px;
+      font-weight: bold;
+      color: #0074A2;
+      border-bottom: 2px solid #0074A2;
+      display: inline-block;
+      padding-bottom: 5px;
+    }
+    .task-details {
+      display: flex;
+      justify-content: space-between;
+      gap: 30px;
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 30px;
+      background-color: #f9f9f9;
+      border-radius: 6px;
+    }
+    .task-info {
+        flex: 2;
+      }
+    .task-info h2 {
+    margin-top: 0;
+    color: #004d73;
+    }
+    .activity-section h3 {
+      color: #0074A2;
+      margin-top: 40px;
+      border-bottom: 1px solid #0074A2;
+      padding-bottom: 5px;
+    }
+    .activity {
+      margin-bottom: 25px;
+    }
+    .activity p {
+      margin: 5px 0;
+    }
+    .activity .description {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    table.pieces {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    table.pieces th {
+      background-color: #0074A2;
+      color: white;
+      padding: 8px;
+      text-align: left;
+    }
+    table.pieces td {
+      border: 1px solid #ccc;
+      padding: 8px;
+    }
+    .logo{
+        height: 90px;
+        width: 90px;
+    }
+    .machine-img img {
+    height: 180px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    }
+    .machine-img {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-right: 5%;
+    }
+    .right{
+        margin-bottom: 2%;
+    }
+    .cout{
+        border: solid 1px;
+        padding: 5px;
+        width: min-content;
+        margin-top: 1%;
+    }
+  </style>
+</head>
+<body>
+  <!-- En-tête -->
+  <div class="header">
+    <div class="left">Date de génération : {{ now|date:"d/m/Y à H:i" }}</div>
+    <div class="right">
+      <img class="logo" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCa6bjPlDqwm7CSvc4SZeZC3wUjzUw311T8A&s" alt="Logo">
+    </div>
+  </div>
+
+  <div class="title-section">
+    <h1>Rapport d'intervention</h1>
+  </div>
+
+  <!-- Détail de la tâche -->
+  <div class="task-details">
+    <div class="task-info">
+        <h2>Tâche ID : {{ tache.id }}</h2>
+        <p><strong>Description :</strong> {{ tache.description }}</p>
+        <p><strong>Créée le :</strong> {{ tache.date_creation|date:"d/m/Y à H:i" }}</p>
+        <p><strong>Programmée pour le:</strong>
+            {{ tache.date_debut|date:"d/m/Y" }}
+            {% if tache.heure_debut %}
+                à {{ tache.heure_debut|time:"H:i" }}
+            {% endif %}
+            - 
+            {{ tache.date_fin|date:"d/m/Y" }}
+            {% if tache.heure_fin %}
+                à {{ tache.heure_fin|time:"H:i" }}
+            {% endif %}
+        </p>
+        <p><strong>Équipement :</strong> {{ tache.machine.nom_machine }}</p>
+        <p><strong>Degré :</strong> 
+            {% if tache.motif_tache %}
+                {{ tache.motif_tache.nom_motif_tache }}
+            {% else %} Aucun
+            {% endif %}
+        </p>
+        <p><strong>Temps de maintenance planifiée :</strong>
+            {{ tache.temps_maintenance_heure }}h {{ tache.temps_maintenance_minute }}mn
+        </p>
+        <p><strong>Temps passé :</strong> {{ total_duree_tache  }}</p>
+      </div>
+    {% if image_path %}
+        <div class="machine-img">
+            <img src="{{ image_path }}" alt="Image">
+        </div>
+    {% else %}
+        <div class="machine-img">
+            <p><i>Image non disponible</i></p>
+        </div>
+    {% endif %}
+  </div>
+
+  <!-- Liste des activités -->
+  <div class="activity-section">
+    <h3>Activités : {{ total_activites }} activités</h3>
+
+    {% for activite in activites %}
+        <div class="activity">
+            <p>Réalisée le {{ activite.instance.date_realisation|date:"d/m/Y H:i" }} </p>
+            <p><span>&#10148</span><strong>{{ activite.instance.description }}</strong> &#10132; {{ activite.instance.temps_passe_heure }}h {{ activite.instance.temps_passe_minute }}mn.</p>
+            {% if activite.pieces %}
+                <table class="pieces">
+                    <tr><th>Pièces détachées utilisées</th><th>Quantité</th></tr>
+                    {% for piece in activite.pieces %}
+                        <tr>
+                            <td>{{ piece.instance.pieces_detachees.nom_piecedetache }} ({{ piece.instance.prix_piece_detachees|intcomma }} Ar)</td>
+                            <td>{{ piece.instance.quantite }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+  </div>
+
+  <p class="cout"><b>COÛT TOTAL = {{ cout_total_pieces|intcomma }} Ar</b></p><br>
+  <p><b>Signature:</b></p>
+
+</body>
+</html>
