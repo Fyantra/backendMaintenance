@@ -13,7 +13,6 @@ class Endroit(models.Model):        #ex: RDC, R+1, R+2, ....
     
 class Responsable(models.Model):
     nom_responsable = models.CharField(max_length=50, null=False)
-    responsabilite = models.CharField(max_length=50, null=True, blank=True, verbose_name="Responsabilité")
     email = models.EmailField(null=True, blank=True, verbose_name="Email")
     telephone = models.CharField(max_length=15, null=True, blank=True, verbose_name="Téléphone")
     photo = models.ImageField(upload_to='responsables', null=True, blank=True, verbose_name="Photo")
@@ -98,6 +97,41 @@ class Fournisseur(models.Model):
     
     def __str__(self):
         return self.nom_fournisseur
+    
+################GESTION DES DOCUMENTS#############################
+class Document(models.Model):
+    DOCUMENT_TYPES = (
+        ('file', 'Fichier'),
+        ('link', 'Lien'),
+    )
+    
+    name = models.CharField(max_length=255, verbose_name="Nom du document")
+    document_type = models.CharField(max_length=4, choices=DOCUMENT_TYPES, verbose_name="Type de document")
+    file = models.FileField(upload_to='documents/', null=True, blank=True, verbose_name="Fichier")
+    link = models.URLField(max_length=500, null=True, blank=True, verbose_name="Lien")
+    description = models.TextField(null=True, blank=True, verbose_name="Description")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de modification")
+
+    class Meta:
+        verbose_name = "Document technique"
+        verbose_name_plural = "Documents techniques"
+
+    def __str__(self):
+        return self.name
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.document_type == 'file' and not self.file:
+            raise ValidationError("Un fichier doit être fourni pour ce type de document.")
+        if self.document_type == 'link' and not self.link:
+            raise ValidationError("Un lien doit être fourni pour ce type de document.")
+
+    def delete(self, *args, **kwargs):
+        # Supprime le fichier physique lors de la suppression du document
+        if self.file:
+            self.file.delete()
+        super().delete(*args, **kwargs)
 
     
 class PieceDetachee(models.Model):
@@ -114,6 +148,9 @@ class PieceDetachee(models.Model):
     stock_min = models.PositiveIntegerField(null=False, verbose_name="Stock minimum")
     stock_max = models.PositiveIntegerField(null=True, verbose_name="Stock maximum")
     lot_de_reapprovisionnement = models.PositiveSmallIntegerField(null=True, verbose_name="Lot de réapprovisionnement")
+    documents = models.ManyToManyField(Document,related_name='%(class)s_documents',  # Permet d'avoir des related_name uniques
+        blank=True,verbose_name="Documents techniques"
+    )
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
     deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
     
@@ -152,6 +189,9 @@ class Machine(models.Model):
     reference_fabricant = models.CharField(max_length=50, null=True, blank=True, verbose_name="Reference fabricant")
     fournisseur = models.ForeignKey(Fournisseur, on_delete=models.SET_NULL,null=True,verbose_name="Fournisseur")
     pieces_detachees = models.ManyToManyField(PieceDetachee, blank=True, verbose_name="Pièces détachées")
+    documents = models.ManyToManyField(Document,related_name='%(class)s_documents',  # Permet d'avoir des related_name uniques
+        blank=True,verbose_name="Documents techniques"
+    )
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
     deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
     
@@ -206,6 +246,9 @@ class Tache(models.Model):
     temps_maintenance_minute = models.PositiveIntegerField(null=True,default=0, blank=True, validators=[MaxValueValidator(59)] , verbose_name="Temps de maintenance en minute")
     temps_arret_heure = models.PositiveIntegerField(null=True,blank=True, validators=[MaxValueValidator(99999)], verbose_name="Temps d`arret en heure")
     temps_arret_minute = models.PositiveIntegerField(null=True,default=0, blank=True, validators=[MaxValueValidator(59)] , verbose_name="Temps d`arret en minute")
+    documents = models.ManyToManyField(Document,related_name='%(class)s_documents',  # Permet d'avoir des related_name uniques
+        blank=True,verbose_name="Documents techniques"
+    )
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
     deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
     
@@ -281,3 +324,4 @@ class UserNotification(models.Model):
 
     def __str__(self):
         return f"User: {self.user.username}, Notification: {self.notification.id}, Vue: {self.vue}"
+    

@@ -8,6 +8,7 @@ from .views.piecedetacheeView import *
 from .views.tacheView import *
 from .views.notificationView import *
 from .views.exportView import *
+from .views.documentView import *
 
 routermachine = DefaultRouter()
 routermachine.register(r'machines', MachineViewSet)
@@ -44,6 +45,9 @@ routerPiece.register(r'piecedetachees', PieceDetacheeViewSet)
 routerPiece.register(r'reapprovisionnements', ReapprovisionnementPieceDetacheeViewSet)
 routerPiece.register(r'historique_mouvement_pieces', HistoriqueMouvementPieceDetacheeViewSet)
 
+routerDocument = DefaultRouter()
+routerDocument.register(r'documents', DocumentViewSet)
+
 urlpatterns = [
     path('maintenance_api/machine/', include(routermachine.urls)),
     path('maintenance_api/atelier/', include(routerAtelier.urls)),
@@ -51,6 +55,7 @@ urlpatterns = [
     path('maintenance_api/piece/', include(routerPiece.urls)),
     path('maintenance_api/tache/', include(routerTache.urls)),
     path('maintenance_api/', include(routerNotification.urls)),
+    path('maintenance_api/', include(routerDocument.urls)),
     
     #URL Export
     path('maintenance_api/export/<str:model_name>/<str:export_format>/', ExportView.as_view()),
