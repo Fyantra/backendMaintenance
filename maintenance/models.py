@@ -13,6 +13,7 @@ class Endroit(models.Model):        #ex: RDC, R+1, R+2, ....
     
 class Responsable(models.Model):
     nom_responsable = models.CharField(max_length=50, null=False)
+    responsabilite = models.CharField(max_length=50, null=True, blank=True, verbose_name="Responsabilité")
     email = models.EmailField(null=True, blank=True, verbose_name="Email")
     telephone = models.CharField(max_length=15, null=True, blank=True, verbose_name="Téléphone")
     photo = models.ImageField(upload_to='responsables', null=True, blank=True, verbose_name="Photo")
