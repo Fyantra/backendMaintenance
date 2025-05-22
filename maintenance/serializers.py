@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import *
 from .sous_serializers import *
 import json
+from decimal import Decimal
 
 class EndroitSerializer(serializers.ModelSerializer):
     class Meta:
@@ -275,14 +276,42 @@ class TacheSerializer(serializers.ModelSerializer):
     motif_tache_id = serializers.PrimaryKeyRelatedField(
         queryset=MotifTache.objects.all(), source='motif_tache', allow_null=True, required=False
     )
+    
+    responsables = ResponsableSousSerializer(many=True, read_only=True)
+    responsable_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Responsable.objects.all(),
+        source='responsables',
+        required=False
+    )
      
     total_duree_tache = serializers.SerializerMethodField() 
+    cout_total_activites = serializers.SerializerMethodField()
         
     class Meta:
         model = Tache
-        fields = ['id', 'description', 'machine', 'machine_id', 'motif_tache', 'motif_tache_id', 'identifiant_status_tache',
+        fields = ['id', 'nom_tache', 'description', 'machine', 'machine_id', 'motif_tache', 'motif_tache_id', 'identifiant_status_tache',
                   'date_debut', 'heure_debut', 'date_fin', 'heure_fin', 'temps_maintenance_heure', 'temps_maintenance_minute',
-                  'temps_arret_heure', 'temps_arret_minute', 'total_duree_tache', 'date_creation']
+                  'temps_arret_heure', 'temps_arret_minute', 'responsable_ids', 'responsables', 'envoyer_email',
+                  'total_duree_tache', 'cout_total_activites', 'date_creation']
+        
+    def create(self, validated_data):
+        responsables_data = validated_data.pop('responsables', [])
+        tache = Tache.objects.create(**validated_data)
+        tache.responsables.set(responsables_data)
+        return tache
+    
+    def update(self, instance, validated_data):
+        responsables_data = validated_data.pop('responsables', None)
+        
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        if responsables_data is not None:
+            instance.responsables.set(responsables_data)
+        
+        return instance
         
     def get_total_duree_tache(self, obj):
         """Calcule la durée totale de toutes les activités liées à une tâche."""
@@ -297,6 +326,20 @@ class TacheSerializer(serializers.ModelSerializer):
         total_minutes = total_minutes % 60
 
         return f"{total_heures}h {total_minutes}mn"
+    
+    def get_cout_total_activites(self, obj):
+        total = Decimal(0)
+        activites = ActiviteTache.objects.filter(tache=obj, deleted_at__isnull=True)
+
+        for activite in activites:
+            pieces = ActiviteTachePieceDetachee.objects.filter(activite_tache=activite)
+
+            for piece in pieces:
+                prix = piece.prix_piece_detachees or 0
+                quantite = piece.quantite or 0
+                total += Decimal(prix) * Decimal(quantite)
+
+        return round(total, 2)
     
 class HistoriqueTacheSerializer(serializers.ModelSerializer):
     tache = TacheSerializer(read_only = True)
@@ -454,14 +497,16 @@ class HistoriqueMouvementPieceDetacheeSerializer(serializers.ModelSerializer):
 class DocumentSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
     file_size = serializers.SerializerMethodField()
+    file_name = serializers.SerializerMethodField()
+    download_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Document
         fields = [
-            'id', 'name', 'document_type', 'file', 'link', 
-            'description', 'created_at', 'file_url', 'file_size'
+            'id', 'name', 'file_name', 'document_type', 'file', 'link', 
+            'description', 'created_at', 'file_url', 'file_size', 'download_url'
         ]
-        read_only_fields = ['created_at', 'file_url', 'file_size']
+        read_only_fields = ['created_at', 'file_name', 'file_url', 'file_size']
 
     def get_file_url(self, obj):
         if obj.file:
@@ -471,6 +516,18 @@ class DocumentSerializer(serializers.ModelSerializer):
     def get_file_size(self, obj):
         if obj.file:
             return obj.file.size
+        return None
+    
+    def get_file_name(self, obj):  # Nouvelle méthode
+        if obj.file:
+            return obj.file.name.split('/')[-1]  # Récupère le dernier segment du chemin
+        return None
+    
+    def get_download_url(self, obj):
+        if obj.file:
+            return self.context['request'].build_absolute_uri(
+                f'{obj.file.url}?download=true'
+            )
         return None
 
     def validate(self, data):

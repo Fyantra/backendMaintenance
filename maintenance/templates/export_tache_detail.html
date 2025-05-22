@@ -127,6 +127,7 @@
   <div class="task-details">
     <div class="task-info">
         <h2>Tâche ID : {{ tache.id }}</h2>
+        <p><strong>Nom de la tâche :</strong> {{ tache.nom_tache }}</p>
         <p><strong>Description :</strong> {{ tache.description }}</p>
         <p><strong>Créée le :</strong> {{ tache.date_creation|date:"d/m/Y à H:i" }}</p>
         <p><strong>Programmée pour le:</strong>
@@ -139,6 +140,13 @@
             {% if tache.heure_fin %}
                 à {{ tache.heure_fin|time:"H:i" }}
             {% endif %}
+        </p>
+        <p><strong>Responsables :</strong>
+          {% for resp in tache.responsables.all %}
+            {{ resp.nom_responsable }} {% if not forloop.last %}, {% endif %}
+            {% empty %}
+            Aucun responsable.
+          {% endfor %}
         </p>
         <p><strong>Équipement :</strong> {{ tache.machine.nom_machine }}</p>
         <p><strong>Degré :</strong> 

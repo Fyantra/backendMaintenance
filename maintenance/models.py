@@ -235,6 +235,7 @@ class StatusTache(models.Model):        #ex: termine, annule
         return self.nom_status_tache
         
 class Tache(models.Model):
+    nom_tache = models.CharField(max_length=50, null=False, verbose_name="Nom de tache")
     machine = models.ForeignKey(Machine, on_delete=models.SET_NULL,null=True,verbose_name="Tache Machine")
     description = models.TextField(null=False,verbose_name="Description tache")
     motif_tache = models.ForeignKey(MotifTache, on_delete=models.SET_NULL,null=True,verbose_name="Motif tache machine")
@@ -250,6 +251,8 @@ class Tache(models.Model):
     documents = models.ManyToManyField(Document,related_name='%(class)s_documents',  # Permet d'avoir des related_name uniques
         blank=True,verbose_name="Documents techniques"
     )
+    responsables = models.ManyToManyField(Responsable, blank=True,verbose_name="Responsables assignés")
+    envoyer_email = models.BooleanField(default=False,verbose_name="Envoyer un email aux responsables")
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
     deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
     

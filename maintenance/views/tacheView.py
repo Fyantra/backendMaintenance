@@ -11,6 +11,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 from ..models import Document
+from ..services.email_service import send_maintenance_email
 
 
 #####################################CRUD#####################################
@@ -46,6 +47,85 @@ class TableFilsViewSet(viewsets.ModelViewSet):
 class TacheViewSet(BaseModelViewSet):
     queryset = Tache.objects.all()
     serializer_class = TacheSerializer
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        
+        # Envoi des emails si demandé
+        if instance.envoyer_email and instance.responsables.exists():
+            # Récupérer les emails valides des responsables
+            responsables_emails = [
+                r.email for r in instance.responsables.all() 
+                if r.email and '@' in r.email
+            ]
+            
+            if responsables_emails:
+                context = {
+                    'tache': instance,
+                    'title': "Nouvelle tâche de maintenance",
+                    'company_name': "Akanjo Madagascar"
+                }
+                
+                subject = f"Nouvelle tâche de maintenance - {instance.machine.nom_machine}"
+                send_maintenance_email(
+                    subject=subject,
+                    to_emails=responsables_emails,
+                    context=context
+                )
+        
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        previous_responsables = set(instance.responsables.all())  # Responsables avant modification
+
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+
+        # Vérifier si l'envoi d'email est demandé
+        envoyer_email = request.data.get('envoyer_email', False)
+        
+        if envoyer_email and instance.responsables.exists():
+            current_responsables = set(instance.responsables.all())
+            
+            # Identifier nouveaux vs anciens responsables
+            new_responsables = current_responsables - previous_responsables
+            existing_responsables = current_responsables & previous_responsables
+            
+            # Préparer les listes d'emails
+            new_emails = [r.email for r in new_responsables if r.email]
+            existing_emails = [r.email for r in existing_responsables if r.email]
+
+            # Envoyer aux nouveaux responsables
+            if new_emails:
+                send_maintenance_email(
+                    subject=f"Nouvelle tâche de maintenance - {instance.machine.nom_machine}",
+                    to_emails=new_emails,
+                    context={
+                        'tache': instance,
+                        'title': "Nouvelle tâche de maintenance",
+                        'company_name': "Akanjo Madagascar",
+                    },
+                )
+            
+            # Envoyer aux anciens responsables
+            if existing_emails:
+                send_maintenance_email(
+                    subject=f"[MISE À JOUR] Modification tâche - {instance.machine.nom_machine}",
+                    to_emails=existing_emails,
+                    context={
+                        'tache': instance,
+                        'title' : "Mise à jour de tâche",
+                        'company_name': "Akanjo Madagascar", 
+                    },
+                )
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
     
     @action(detail=True, methods=['post'], url_path='add_document')
     def add_document(self, request, pk=None):

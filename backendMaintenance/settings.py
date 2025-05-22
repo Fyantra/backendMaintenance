@@ -90,7 +90,7 @@ ROOT_URLCONF = 'backendMaintenance.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'maintenance/export/templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'maintenance/templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -120,6 +120,15 @@ DATABASES = {
         'PORT': '5433',       
     }
 }
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'andrimalalafyantra@gmail.com'  # Remplacez par votre email Gmail
+EMAIL_HOST_PASSWORD = 'innz misw awzb wbsh'  # Mot de passe d'application Gmail
+DEFAULT_FROM_EMAIL = 'andrimalalafyantra@gmail.com'  # Doit être le même que EMAIL_HOST_USER
 
 
 # Password validation

@@ -17,7 +17,7 @@ class EndroitSousSerializer(MereSousSerializer):
 class ResponsableSousSerializer(MereSousSerializer):
     class Meta:
         model = Responsable
-        fields = ['id','nom_responsable']
+        fields = ['id','nom_responsable', 'email', 'photo']
         
 class AtelierSousSerializer(MereSousSerializer):
     class Meta:

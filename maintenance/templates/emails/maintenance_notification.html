@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Nouvelle tâche de maintenance</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f7;
+      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+      color: #333;
+    }
+
+    .container {
+      max-width: 640px;
+      margin: auto;
+      background-color: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .header {
+      text-align: center;
+      background-color: #f2f3f5;
+    }
+
+    .header img {
+      margin-bottom: 10px;
+      max-width: 75px;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      margin: 0;
+      font-weight: 500;
+    }
+
+    .content {
+      padding: 25px 30px;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .content p {
+      margin: 0 0 15px;
+    }
+
+    .details {
+      background-color: #f9fafc;
+      border: 1px solid #e1e4e8;
+      border-radius: 6px;
+      padding: 20px;
+      margin-top: 10px;
+    }
+
+    .detail-item {
+      margin-bottom: 14px;
+    }
+
+    .detail-item span {
+      display: block;
+      margin-top: 4px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .footer {
+      background-color: #f1f3f5;
+      text-align: center;
+      padding: 15px 20px;
+      font-size: 13px;
+      color: #888;
+    }
+
+    @media (max-width: 600px) {
+      .content, .details {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header" style="position: relative; text-align: center; padding: 43px 20px 10px;">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCa6bjPlDqwm7CSvc4SZeZC3wUjzUw311T8A&s"
+             alt="Logo {{ company_name }}"
+             style="position: absolute; top: 20px; right: 20px; height: 50px; width: auto;">
+      
+        <h1 style="margin: 0; font-size: 22px;">{{ title }}</h1>
+      </div>
+
+    <div class="content">
+      <p>Bonjour,</p>
+      <p>Une tâche de maintenance vous a été assignée. Voici les détails :</p>
+
+      <div class="details">
+        <div class="detail-item">
+          <strong>Équipement</strong>
+          <span>{{ tache.machine.nom_machine }} ({{ tache.machine.numero_de_serie }})</span>
+        </div>
+        <div class="detail-item">
+          <strong>Emplacement</strong>
+          <span>{{ tache.machine.atelier.nom_atelier }}{% if tache.machine.chaine %}, {{ tache.machine.chaine.nom_chaine }}{% endif %}</span>
+        </div>
+        <hr/>
+        <div class="detail-item">
+          <strong>Nom de la tâche</strong>
+          <span>{{ tache.nom_tache }}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Description</strong>
+          <span>{{ tache.description }}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Motif</strong>
+          <span>{% if  tache.motif_tache%}{{ tache.motif_tache.nom_motif }} {% else %} Aucun motif {% endif %}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Date de début</strong>
+          <span>{{ tache.date_debut|date:"d/m/Y" }}{% if tache.heure_debut %} à {{ tache.heure_debut|time:"H:i" }}{% endif %}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Date de fin</strong>
+          <span>{{ tache.date_fin|date:"d/m/Y" }}{% if tache.heure_fin %} à {{ tache.heure_fin|time:"H:i" }}{% endif %}</span>
+        </div>
+      </div>
+
+      <p style="margin-top: 30px;">Cordialement,</p>
+      <p>L’équipe de maintenance</p>
+    </div>
+
+    <div class="footer">
+      <p>Ceci est un message automatique, merci de ne pas y répondre directement.</p>
+      <p>&copy; {% now "Y" %} {{ company_name }}. Tous droits réservés.</p>
+    </div>
+  </div>
+</body>
+</html>
