@@ -441,10 +441,9 @@ class ActiviteTachePieceDetacheeSerializer(serializers.ModelSerializer):
     
 class NotificationSerializer(serializers.ModelSerializer):
     vue = serializers.SerializerMethodField()
-
     class Meta:
         model = Notification
-        fields = ['id', 'message', 'piece_detachee', 'date_creation', 'vue']
+        fields = ['id', 'message', 'piece_detachee', 'tache', 'date_creation', 'vue']
 
     def get_vue(self, obj):
         user = self.context['request'].user

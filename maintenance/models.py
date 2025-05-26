@@ -311,15 +311,30 @@ class HistoriqueMouvementPieceDetachee(models.Model):
 ##################################NOTIFICATION################################
 class Notification(models.Model):
     message = models.TextField(verbose_name="Message de la notification")
-    piece_detachee = models.ForeignKey(PieceDetachee, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Pièce détachée associée")
+    piece_detachee = models.ForeignKey(
+        PieceDetachee, 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True, 
+        verbose_name="Pièce détachée associée"
+    )
+    tache = models.ForeignKey(
+        'Tache',  # Utilisation d'une string pour éviter les dépendances circulaires
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True, 
+        verbose_name="Tâche associée"
+    )
     date_creation = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
     utilisateurs = models.ManyToManyField(
-        Utilisateur, through='UserNotification', related_name='notifications', 
+        Utilisateur, 
+        through='UserNotification', 
+        related_name='utilisateurs', 
         verbose_name="Utilisateurs associés"
     )
 
     def __str__(self):
-        return f"Notification: {self.message}"    
+        return f"Notification: {self.message}"
 
 class UserNotification(models.Model):
     user = models.ForeignKey(Utilisateur, on_delete=models.CASCADE)

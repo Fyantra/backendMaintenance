@@ -109,3 +109,43 @@ def verifier_stock_limites(sender, instance, **kwargs):
 
     if user_notifications:
         UserNotification.objects.bulk_create(user_notifications)
+
+#notification pour les changements de statut des tâches
+@receiver(post_save, sender=Tache)
+def verifier_statut_tache(sender, instance, created, **kwargs):
+    # Ne pas créer de notification pour les nouvelles tâches
+    if created:
+        return
+
+    utilisateurs = Utilisateur.objects.all()
+    notifications = []
+    user_notifications = []
+
+    # Vérification des changements de statut
+    if instance.identifiant_status_tache == 4:
+        notification = Notification.objects.create(
+            tache=instance,
+            message=f"La tâche '{instance.nom_tache}' a été marquée comme terminée.",
+        )
+        notifications.append(notification)
+    elif instance.identifiant_status_tache == 3:
+        notification = Notification.objects.create(
+            tache=instance,
+            message=f"La tâche '{instance.nom_tache}' est en retard!",
+        )
+        notifications.append(notification)
+    elif instance.identifiant_status_tache == 6:
+        notification = Notification.objects.create(
+            tache=instance,
+            message=f"La tâche '{instance.nom_tache}' est en retard mais en cours d'exécution.",
+        )
+        notifications.append(notification)
+
+    # Associer les notifications à tous les utilisateurs
+    for notification in notifications:
+        user_notifications.extend(
+            [UserNotification(user=user, notification=notification) for user in utilisateurs]
+        )
+
+    if user_notifications:
+        UserNotification.objects.bulk_create(user_notifications)
