@@ -202,6 +202,10 @@ class MachineSerializer(serializers.ModelSerializer):
 
         return f"{total_heures}h {total_minutes}mn"
 
+class HistoriqueStatutMachineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HistoriqueStatutMachine
+        fields = ['id', 'machine', 'description', 'date_creation']
     
 class PieceDetacheeSerializer(serializers.ModelSerializer):
     modele = ModeleSousSerializer(read_only=True)
@@ -222,7 +226,7 @@ class PieceDetacheeSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = PieceDetachee
-        fields = ['id', 'nom_piecedetache', 'description', 'modele', 'date_achat', 'prix_unitaire', 'quantite', 'emplacement', 'fournisseur',
+        fields = ['id', 'nom_piecedetache', 'code_article', 'description', 'modele', 'date_achat', 'prix_unitaire', 'quantite', 'emplacement', 'fournisseur',
                   'modele_id', 'emplacement_id', 'fournisseur_id','reference_fabricant', 'image', 'stock_min', 'stock_max', 
                   'lot_de_reapprovisionnement', 'date_creation']
         
@@ -347,6 +351,11 @@ class HistoriqueTacheSerializer(serializers.ModelSerializer):
     class Meta:
         model = HistoriqueTache
         fields = ['id', 'tache', 'date_creation']
+        
+class HistoriqueStatutTacheSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HistoriqueStatutTache
+        fields = ['id', 'tache', 'description', 'date_creation']
         
 class ActiviteTacheSerializer(serializers.ModelSerializer):
     

@@ -2,6 +2,7 @@ from django.db.models.signals import post_save, pre_save, post_delete
 from django.dispatch import receiver
 from .models import *
 from django.utils import timezone
+from django.db.models import F
 
 @receiver(pre_save, sender=Machine)     #deplacement d`un machine
 def store_initial_values(sender, instance, **kwargs):
@@ -72,7 +73,7 @@ def restore_piece_detachee_quantite(sender, instance, **kwargs):
             piece_detachee=piece_detachee,
             tache = instance.activite_tache.tache,
             source='Retour de consommation',
-            date_realisation=instance.activite_tache.date_realisation,
+            date_realisation=timezone.now(),
             quantite=instance.quantite,
             cout=cout,
             quantite_piece=piece_detachee.quantite  # Quantité actuelle après le retour
@@ -134,12 +135,6 @@ def verifier_statut_tache(sender, instance, created, **kwargs):
             message=f"La tâche '{instance.nom_tache}' est en retard!",
         )
         notifications.append(notification)
-    elif instance.identifiant_status_tache == 6:
-        notification = Notification.objects.create(
-            tache=instance,
-            message=f"La tâche '{instance.nom_tache}' est en retard mais en cours d'exécution.",
-        )
-        notifications.append(notification)
 
     # Associer les notifications à tous les utilisateurs
     for notification in notifications:
@@ -149,3 +144,86 @@ def verifier_statut_tache(sender, instance, created, **kwargs):
 
     if user_notifications:
         UserNotification.objects.bulk_create(user_notifications)
+        
+STATUS_MACHINE = {
+    1: "La machine a été mise en service",
+    2: "La machine a été mise en maintenance", 
+    3: "La machine a été mise hors-service",
+    4: "La machine est en panne"
+}
+
+STATUS_TACHE = {
+    1: "La tâche est planifiée",
+    2: "La tâche est en cours",
+    4: "La tâche est terminée",
+    5: "La tâche est annulée",
+    6: "La tâche est en retard et commencée"
+}
+
+@receiver(pre_save, sender=Machine)
+def store_initial_machine_status(sender, instance, **kwargs):
+    """Stocke le statut initial avant sauvegarde"""
+    if instance.pk:
+        try:
+            old_instance = Machine.objects.get(pk=instance.pk)
+            instance._initial_status = old_instance.identifiant_status_machine
+        except Machine.DoesNotExist:
+            instance._initial_status = None
+    else:
+        instance._initial_status = None
+
+@receiver(post_save, sender=Machine)
+def create_machine_status_history(sender, instance, created, **kwargs):
+    """Crée l'historique des statuts de machine"""
+    current_status = instance.identifiant_status_machine
+    
+    if current_status not in STATUS_MACHINE:
+        return
+    
+    if created:
+        # Création initiale
+        HistoriqueStatutMachine.objects.create(
+            machine=instance,
+            description=STATUS_MACHINE[current_status]
+        )
+    else:
+        # Vérifie si le statut a changé
+        if hasattr(instance, '_initial_status') and instance._initial_status != current_status:
+            HistoriqueStatutMachine.objects.create(
+                machine=instance,
+                description=STATUS_MACHINE[current_status]
+            )
+
+@receiver(pre_save, sender=Tache)
+def store_initial_tache_status(sender, instance, **kwargs):
+    """Stocke le statut initial avant sauvegarde"""
+    if instance.pk:
+        try:
+            old_instance = Tache.objects.get(pk=instance.pk)
+            instance._initial_status = old_instance.identifiant_status_tache
+        except Tache.DoesNotExist:
+            instance._initial_status = None
+    else:
+        instance._initial_status = None
+
+@receiver(post_save, sender=Tache)
+def create_tache_status_history(sender, instance, created, **kwargs):
+    """Crée l'historique des statuts de tâche"""
+    current_status = instance.identifiant_status_tache
+    
+    if current_status not in STATUS_TACHE:
+        return
+    
+    if created:
+        # Création initiale
+        HistoriqueStatutTache.objects.create(
+            tache=instance,
+            description=STATUS_TACHE[current_status]
+        )
+    else:
+        # Vérifie si le statut a changé
+        if hasattr(instance, '_initial_status') and instance._initial_status != current_status:
+            HistoriqueStatutTache.objects.create(
+                tache=instance,
+                description=f"Changement de statut: {STATUS_TACHE[current_status]}"
+            )

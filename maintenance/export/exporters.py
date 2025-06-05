@@ -106,8 +106,7 @@ class PieceDetacheeExporter(BaseExporter):
         'stock_min': 'Stock minimum',
         'stock_max': 'Stock maximum',
         'fournisseur': 'Fournisseur',
-        'date_creation': 'Date de création'
     }
     
-    pagesize = (11*inch, 17*inch)
+    pagesize = (12*inch, 17*inch)
     title = 'pièces détachées'

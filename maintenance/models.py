@@ -137,6 +137,7 @@ class Document(models.Model):
     
 class PieceDetachee(models.Model):
     nom_piecedetache = models.CharField(max_length=100, null=False, verbose_name="Nom de la pièce détachée")
+    code_article = models.CharField(max_length=50, null=True, blank=True, unique=True, verbose_name="Code article")
     description = models.TextField(null=True, blank=True, verbose_name="Description")
     modele = models.ForeignKey(Modele, on_delete=models.SET_NULL,null=True,verbose_name="Modele")
     date_achat = models.DateTimeField(null=True, blank=True, verbose_name="Date d'achat")
@@ -173,7 +174,7 @@ class ReapprovisionnementPieceDetachee(models.Model):
         
 class Machine(models.Model):
     nom_machine = models.CharField(max_length=50, null=False, verbose_name="Nom de machine")
-    numero_machine = models.CharField(max_length=100, null=False, default='0000', verbose_name="Numero de la machine")
+    numero_machine = models.CharField(max_length=100, null=False, unique=True, default='0000', verbose_name="Numero de la machine")
     numero_de_serie = models.CharField(max_length=100, null=False, unique=True, verbose_name="Numero de serie")
     numero_de_moteur = models.CharField(max_length=50, null=True, unique=True, blank=True, verbose_name="Numero de moteur")
     type = models.ForeignKey(Type, on_delete=models.SET_NULL,null=True,verbose_name="Type")     #ex: DDL 9000 C 
@@ -214,6 +215,11 @@ class HistoriqueMouvementMachine(models.Model):
     date_deplacement = models.DateTimeField(auto_now=True, null=True)
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
     deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
+    
+class HistoriqueStatutMachine(models.Model):
+    description = models.CharField(max_length=50, null=False , verbose_name="Description historique statut machine")
+    machine = models.ForeignKey(Machine, on_delete=models.CASCADE,verbose_name="Machine associée a l`historique")
+    date_creation = models.DateTimeField(auto_now_add=True, null=True)
 
 ################################################################################################################
 class MotifTache(models.Model):     #ex: preventif, priorite basse
@@ -259,12 +265,17 @@ class Tache(models.Model):
     def __str__(self):
         return self.description
     
+class HistoriqueStatutTache(models.Model):
+    description = models.CharField(max_length=50, null=False , verbose_name="Description historique statut tache")
+    tache = models.ForeignKey(Tache, on_delete=models.CASCADE,verbose_name="Tache associée a l`historique")
+    date_creation = models.DateTimeField(auto_now_add=True, null=True)
+    
 class ActiviteTache(models.Model):
     description = models.TextField(max_length=2000, null=False , verbose_name="Description activite tache")
     date_realisation = models.DateTimeField(null=False, verbose_name="Date de realisation d`activite")
     temps_passe_heure = models.PositiveIntegerField(null=True,blank=True, validators=[MaxValueValidator(99999)] , verbose_name="Temps passé sur l`activite en heure")
     temps_passe_minute = models.PositiveIntegerField(null=True,blank=True, validators=[MaxValueValidator(59)] , verbose_name="Temps passé sur l`activite en minute")
-    tache = models.ForeignKey(Tache, on_delete=models.CASCADE,verbose_name="Tache associe a l`activite")
+    tache = models.ForeignKey(Tache, on_delete=models.CASCADE,verbose_name="Tache associée a l`activite")
     date_creation = models.DateTimeField(auto_now_add=True, null=True)
     deleted_at = models.DateField(null=True, blank=True, verbose_name="Date de suppression")
     

@@ -2,9 +2,9 @@ from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from ..models import Tache, MotifTache, StatusTache, HistoriqueTache, ActiviteTache, ActiviteTachePieceDetachee
-from ..serializers import (TacheSerializer, MotifTacheSerializer, StatusTacheSerializer, HistoriqueTacheSerializer, 
-    ActiviteTacheSerializer, ActiviteTachePieceDetacheeSerializer, DocumentSerializer)
+from ..models import Tache, MotifTache, StatusTache, HistoriqueTache, ActiviteTache, ActiviteTachePieceDetachee, HistoriqueStatutTache
+from ..serializers import (TacheSerializer, MotifTacheSerializer, StatusTacheSerializer, HistoriqueTacheSerializer,
+    ActiviteTacheSerializer, ActiviteTachePieceDetacheeSerializer, DocumentSerializer, HistoriqueStatutTacheSerializer)
 from utilisateur.permissions import IsChef
 from django.utils.timezone import now
 from rest_framework.decorators import action
@@ -87,9 +87,8 @@ class TacheViewSet(BaseModelViewSet):
         instance = serializer.save()
 
         # Vérifier si l'envoi d'email est demandé
-        envoyer_email = request.data.get('envoyer_email', False)
         
-        if envoyer_email and instance.responsables.exists():
+        if instance.envoyer_email and instance.responsables.exists():
             current_responsables = set(instance.responsables.all())
             
             # Identifier nouveaux vs anciens responsables
@@ -186,4 +185,16 @@ class ActiviteTacheViewSet(BaseModelViewSet):
 class ActiviteTachePieceDetacheeViewSet(TableFilsViewSet):
     queryset = ActiviteTachePieceDetachee.objects.all()
     serializer_class = ActiviteTachePieceDetacheeSerializer
+    
+class HistoriqueStatutTacheViewSet(viewsets.ModelViewSet):
+    queryset = HistoriqueStatutTache.objects.all()
+    serializer_class = HistoriqueStatutTacheSerializer
+
+    def get_permissions(self):      #seuls un Chef pour faire les operations CRUD
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            self.permission_classes = [IsAuthenticated, IsChef]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
+
 #####################################FIN CRUD#####################################

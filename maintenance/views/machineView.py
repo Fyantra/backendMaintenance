@@ -1,8 +1,9 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from ..models import Machine, Modele, Type, NomMachine, Marque, Status, MachineRelation, HistoriqueMouvementMachine
+from ..models import Machine, Modele, Type, NomMachine, Marque, Status, MachineRelation, HistoriqueMouvementMachine, HistoriqueStatutMachine
 from ..serializers import (MachineSerializer, ModeleSerializer, TypeSerializer, NomMachineSerializer, 
-    MarqueSerializer, StatusSerializer, MachineRelationSerializer, HistoriqueMouvementMachineSerializer, DocumentSerializer)
+    MarqueSerializer, StatusSerializer, MachineRelationSerializer, HistoriqueMouvementMachineSerializer, DocumentSerializer, 
+    HistoriqueStatutMachineSerializer)
 from utilisateur.permissions import IsChef
 from django.utils.timezone import now
 from rest_framework.decorators import action
@@ -101,6 +102,17 @@ class StatusViewSet(BaseModelViewSet):
 class HistoriqueMouvementMachineViewSet(BaseModelViewSet):
     queryset = HistoriqueMouvementMachine.objects.all()
     serializer_class = HistoriqueMouvementMachineSerializer
+    
+class HistoriqueStatutMachineViewSet(viewsets.ModelViewSet):
+    queryset = HistoriqueStatutMachine.objects.all()
+    serializer_class = HistoriqueStatutMachineSerializer
+
+    def get_permissions(self):      #seuls un Chef pour faire les operations CRUD
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            self.permission_classes = [IsAuthenticated, IsChef]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
 
 
 #####################################FIN CRUD#####################################

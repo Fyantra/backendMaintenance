@@ -9,6 +9,8 @@ from .views.tacheView import *
 from .views.notificationView import *
 from .views.exportView import *
 from .views.documentView import *
+from .views.statistiquePieceDetacheeView import *
+from .views.statistiqueTacheView import *
 
 routermachine = DefaultRouter()
 routermachine.register(r'machines', MachineViewSet)
@@ -19,6 +21,7 @@ routermachine.register(r'noms_machines', NomMachineViewSet)
 routermachine.register(r'marques', MarqueViewSet)
 routermachine.register(r'status', StatusViewSet)
 routermachine.register(r'historique_machine', HistoriqueMouvementMachineViewSet)
+routermachine.register(r'historique_statut_machine', HistoriqueStatutMachineViewSet)
 
 routerTache = DefaultRouter()
 routerTache.register(r'taches', TacheViewSet)
@@ -27,6 +30,7 @@ routerTache.register(r'status_taches', StatusTacheViewSet)
 routerTache.register(r'historique_taches', HistoriqueTacheViewSet)
 routerTache.register(r'activites_taches', ActiviteTacheViewSet)
 routerTache.register(r'activites_piecedetachees', ActiviteTachePieceDetacheeViewSet)
+routerTache.register(r'historique_statut_tache', HistoriqueStatutTacheViewSet)
 
 routerNotification = DefaultRouter()
 routerNotification.register(r'notifications', NotificationViewSet)
@@ -61,4 +65,12 @@ urlpatterns = [
     path('maintenance_api/export/<str:model_name>/<str:export_format>/', ExportView.as_view()),
     path('maintenance_api/export-tache/<str:export_format>/', ExportTacheView.as_view()),
     path('maintenance_api/export-tache/<int:pk>/<str:export_format>/', ExportTacheView.as_view()),
+    
+    #URL Statistiques pieces
+    path('maintenance_api/stats/pieces-detachees/', PieceDetacheeStatsView.as_view()),
+    
+    #URL Statistiques taches
+    path('maintenance_api/stats/dashboard/', DashboardStatsView.as_view()),
+    path('maintenance_api/stats/top-taches/', TopTachesStatsView.as_view()),
+    path('maintenance_api/stats/top-machines/', TopMachinesStatsView.as_view()),
 ]
